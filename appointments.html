@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MaterniTrack - Appointments</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="appointments.css">
+</head>
+<body class="appointments-page">
+  <header class="top-nav">
+    <div class="brand-wrap top-nav-left">
+      <div class="brand-icon" aria-hidden="true">
+        <div class="brand-mark"></div>
+      </div>
+      <div>
+        <p class="brand-system-name">MaterniTrack</p>
+        <p class="brand-clinic-name">Real-Mendoza Maternity Clinic</p>
+      </div>
+    </div>
+
+    <div class="top-nav-right">
+      <span class="role-badge role-badge-admin is-hidden" data-role-badge="admin">ADMIN</span>
+      <span class="role-badge role-badge-staff is-hidden" data-role-badge="staff">STAFF</span>
+
+      <div class="staff-profile" aria-label="Logged-in staff">
+        <div class="staff-avatar" aria-hidden="true">LM</div>
+        <span class="staff-name">Leyo Mendoza</span>
+      </div>
+      <button type="button" class="logout-btn" id="logoutBtn">Log out</button>
+    </div>
+  </header>
+
+  <main class="appointments-content">
+    <section class="page-header" aria-label="Page header">
+      <div>
+        <h1 class="page-title">
+          <span class="page-title-icon"><i class="bi bi-calendar2"></i></span>
+          Appointments
+        </h1>
+        <p class="page-subtitle">Manage and schedule patient visits for Real-Mendoza Maternity Clinic.</p>
+      </div>
+      <button type="button" class="add-appointment-btn" onclick="window.location.href='appointments-add.html'">
+        <i class="bi bi-plus-lg"></i>
+        Add Appointment
+      </button>
+    </section>
+
+    <div class="appointments-layout">
+      <!-- LEFT SIDE: CALENDAR -->
+      <section class="calendar-section" aria-label="Calendar view">
+        <div class="calendar-header">
+          <button type="button" class="calendar-nav-btn calendar-prev" aria-label="Previous month">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <h2 class="calendar-month-year" id="calendarMonthYear">March 2026</h2>
+          <button type="button" class="calendar-nav-btn calendar-next" aria-label="Next month">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <button type="button" class="calendar-today-btn">Today</button>
+
+        <div class="calendar-grid">
+          <div class="calendar-day-header">Sun</div>
+          <div class="calendar-day-header">Mon</div>
+          <div class="calendar-day-header">Tue</div>
+          <div class="calendar-day-header">Wed</div>
+          <div class="calendar-day-header">Thu</div>
+          <div class="calendar-day-header">Fri</div>
+          <div class="calendar-day-header">Sat</div>
+
+          <!-- Calendar days will be populated by JavaScript -->
+          <div class="calendar-day empty"></div>
+          <div class="calendar-day empty"></div>
+          <div class="calendar-day">1</div>
+          <div class="calendar-day">2</div>
+          <div class="calendar-day">3</div>
+          <div class="calendar-day">4</div>
+          <div class="calendar-day">5</div>
+
+          <div class="calendar-day">6</div>
+          <div class="calendar-day">7</div>
+          <div class="calendar-day">8</div>
+          <div class="calendar-day">9</div>
+          <div class="calendar-day">10</div>
+          <div class="calendar-day">11</div>
+          <div class="calendar-day">12</div>
+
+          <div class="calendar-day">13</div>
+          <div class="calendar-day">14</div>
+          <div class="calendar-day">15</div>
+          <div class="calendar-day">16</div>
+          <div class="calendar-day">17</div>
+          <div class="calendar-day">18</div>
+          <div class="calendar-day">19</div>
+
+          <div class="calendar-day">20</div>
+          <div class="calendar-day">21</div>
+          <div class="calendar-day">22</div>
+          <div class="calendar-day">23</div>
+          <div class="calendar-day">24</div>
+          <div class="calendar-day is-today">25</div>
+          <div class="calendar-day">26</div>
+
+          <div class="calendar-day">27</div>
+          <div class="calendar-day">28</div>
+          <div class="calendar-day">29</div>
+          <div class="calendar-day">30</div>
+          <div class="calendar-day">31</div>
+          <div class="calendar-day empty"></div>
+          <div class="calendar-day empty"></div>
+        </div>
+      </section>
+
+      <!-- RIGHT SIDE: APPOINTMENTS LIST + STATS -->
+      <section class="appointments-right-section" aria-label="Today's appointments and statistics">
+        <div class="appointments-list-container">
+          <div class="appointments-list-header">
+            <div>
+              <p class="appointments-list-date" id="selectedDate">Monday, March 24, 2026</p>
+              <p class="appointments-list-count" id="appointmentCount">4 appointments</p>
+            </div>
+            <div class="filter-dropdown">
+              <button type="button" class="filter-btn" id="filterBtn">
+                Filter <i class="bi bi-chevron-down"></i>
+              </button>
+              <div class="filter-menu is-hidden" id="filterMenu">
+                <button type="button" class="filter-option" data-filter="all">All</button>
+                <button type="button" class="filter-option" data-filter="confirmed">Confirmed</button>
+                <button type="button" class="filter-option" data-filter="pending">Pending</button>
+                <button type="button" class="filter-option" data-filter="done">Done</button>
+                <button type="button" class="filter-option" data-filter="upcoming">Upcoming</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="appointment-cards-container" id="appointmentCardsContainer">
+            <!-- Appointment cards will be populated here -->
+            <article class="appointment-card">
+              <div class="appointment-time-box">09:00 AM</div>
+              <div class="appointment-patient-info">
+                <span class="appointment-avatar">MR</span>
+                <div class="appointment-details">
+                  <p class="appointment-patient-name">Maria Reyes</p>
+                  <p class="appointment-type">Prenatal Checkup</p>
+                  <p class="appointment-staff">Dr. Real-Mendoza</p>
+                </div>
+              </div>
+              <div class="appointment-right">
+                <span class="appointment-status confirmed">Confirmed ●</span>
+                <div class="appointment-actions">
+                  <button type="button" class="appointment-action-btn edit-btn" title="Edit appointment">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button type="button" class="appointment-action-btn delete-btn" title="Delete appointment">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <article class="appointment-card">
+              <div class="appointment-time-box">10:30 AM</div>
+              <div class="appointment-patient-info">
+                <span class="appointment-avatar">JC</span>
+                <div class="appointment-details">
+                  <p class="appointment-patient-name">Juan Cruz</p>
+                  <p class="appointment-type">Consultation</p>
+                  <p class="appointment-staff">Maria Reyes</p>
+                </div>
+              </div>
+              <div class="appointment-right">
+                <span class="appointment-status pending">Pending ●</span>
+                <div class="appointment-actions">
+                  <button type="button" class="appointment-action-btn edit-btn" title="Edit appointment">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button type="button" class="appointment-action-btn delete-btn" title="Delete appointment">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <article class="appointment-card">
+              <div class="appointment-time-box">02:00 PM</div>
+              <div class="appointment-patient-info">
+                <span class="appointment-avatar">AS</span>
+                <div class="appointment-details">
+                  <p class="appointment-patient-name">Ana Santos</p>
+                  <p class="appointment-type">Postnatal Care</p>
+                  <p class="appointment-staff">Dr. Real-Mendoza</p>
+                </div>
+              </div>
+              <div class="appointment-right">
+                <span class="appointment-status done">Done ●</span>
+                <div class="appointment-actions">
+                  <button type="button" class="appointment-action-btn edit-btn" title="Edit appointment">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button type="button" class="appointment-action-btn delete-btn" title="Delete appointment">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <article class="appointment-card">
+              <div class="appointment-time-box">04:15 PM</div>
+              <div class="appointment-patient-info">
+                <span class="appointment-avatar">RP</span>
+                <div class="appointment-details">
+                  <p class="appointment-patient-name">Rosa Peña</p>
+                  <p class="appointment-type">Follow-up Visit</p>
+                  <p class="appointment-staff">Juan Santos</p>
+                </div>
+              </div>
+              <div class="appointment-right">
+                <span class="appointment-status upcoming">Upcoming ●</span>
+                <div class="appointment-actions">
+                  <button type="button" class="appointment-action-btn edit-btn" title="Edit appointment">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button type="button" class="appointment-action-btn delete-btn" title="Delete appointment">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <!-- Empty State (hidden by default) -->
+          <div class="appointment-empty-state is-hidden" id="appointmentEmptyState">
+            <div class="empty-state-icon" aria-hidden="true">
+              <i class="bi bi-calendar-x"></i>
+            </div>
+            <p class="empty-state-text">No appointments on this day.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Global utilities and storage -->
+  <script src="storage-utils.js"></script>
+  
+  <!-- Feature-specific managers -->
+  <script src="role-manager.js"></script>
+  <script src="auth-manager.js"></script>
+</html>

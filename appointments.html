@@ -139,98 +139,7 @@
           </div>
 
           <div class="appointment-cards-container" id="appointmentCardsContainer">
-            <!-- Appointment cards will be populated here -->
-            <article class="appointment-card">
-              <div class="appointment-time-box">09:00 AM</div>
-              <div class="appointment-patient-info">
-                <span class="appointment-avatar">MR</span>
-                <div class="appointment-details">
-                  <p class="appointment-patient-name">Maria Reyes</p>
-                  <p class="appointment-type">Prenatal Checkup</p>
-                  <p class="appointment-staff">Dr. Real-Mendoza</p>
-                </div>
-              </div>
-              <div class="appointment-right">
-                <span class="appointment-status confirmed">Confirmed ●</span>
-                <div class="appointment-actions">
-                  <button type="button" class="appointment-action-btn edit-btn" title="Edit appointment">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button type="button" class="appointment-action-btn delete-btn" title="Delete appointment">
-                    <i class="bi bi-trash3"></i>
-                  </button>
-                </div>
-              </div>
-            </article>
-
-            <article class="appointment-card">
-              <div class="appointment-time-box">10:30 AM</div>
-              <div class="appointment-patient-info">
-                <span class="appointment-avatar">JC</span>
-                <div class="appointment-details">
-                  <p class="appointment-patient-name">Juan Cruz</p>
-                  <p class="appointment-type">Consultation</p>
-                  <p class="appointment-staff">Maria Reyes</p>
-                </div>
-              </div>
-              <div class="appointment-right">
-                <span class="appointment-status pending">Pending ●</span>
-                <div class="appointment-actions">
-                  <button type="button" class="appointment-action-btn edit-btn" title="Edit appointment">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button type="button" class="appointment-action-btn delete-btn" title="Delete appointment">
-                    <i class="bi bi-trash3"></i>
-                  </button>
-                </div>
-              </div>
-            </article>
-
-            <article class="appointment-card">
-              <div class="appointment-time-box">02:00 PM</div>
-              <div class="appointment-patient-info">
-                <span class="appointment-avatar">AS</span>
-                <div class="appointment-details">
-                  <p class="appointment-patient-name">Ana Santos</p>
-                  <p class="appointment-type">Postnatal Care</p>
-                  <p class="appointment-staff">Dr. Real-Mendoza</p>
-                </div>
-              </div>
-              <div class="appointment-right">
-                <span class="appointment-status done">Done ●</span>
-                <div class="appointment-actions">
-                  <button type="button" class="appointment-action-btn edit-btn" title="Edit appointment">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button type="button" class="appointment-action-btn delete-btn" title="Delete appointment">
-                    <i class="bi bi-trash3"></i>
-                  </button>
-                </div>
-              </div>
-            </article>
-
-            <article class="appointment-card">
-              <div class="appointment-time-box">04:15 PM</div>
-              <div class="appointment-patient-info">
-                <span class="appointment-avatar">RP</span>
-                <div class="appointment-details">
-                  <p class="appointment-patient-name">Rosa Peña</p>
-                  <p class="appointment-type">Follow-up Visit</p>
-                  <p class="appointment-staff">Juan Santos</p>
-                </div>
-              </div>
-              <div class="appointment-right">
-                <span class="appointment-status upcoming">Upcoming ●</span>
-                <div class="appointment-actions">
-                  <button type="button" class="appointment-action-btn edit-btn" title="Edit appointment">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button type="button" class="appointment-action-btn delete-btn" title="Delete appointment">
-                    <i class="bi bi-trash3"></i>
-                  </button>
-                </div>
-              </div>
-            </article>
+            <!-- Appointment cards will be populated by JavaScript -->
           </div>
 
           <!-- Empty State (hidden by default) -->
@@ -248,7 +157,226 @@
   <!-- Global utilities and storage -->
   <script src="storage-utils.js"></script>
   
+  <!-- Appointment data management -->
+  <script src="appointments.js"></script>
+  
   <!-- Feature-specific managers -->
   <script src="role-manager.js"></script>
   <script src="auth-manager.js"></script>
+  
+  <!-- Appointment display script -->
+  <script>
+    let currentSelectedDate = getTodayDate();
+    let currentFilter = 'all';
+    let currentCalendarDate = new Date();
+
+    // Generate calendar for current month
+    function generateCalendar() {
+      const year = currentCalendarDate.getFullYear();
+      const month = currentCalendarDate.getMonth();
+      
+      // Update month year header
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      document.getElementById('calendarMonthYear').textContent = monthNames[month] + ' ' + year;
+      
+      // Get first day of month and number of days
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const daysInPrevMonth = new Date(year, month, 0).getDate();
+      
+      // Clear existing calendar days
+      const grid = document.querySelector('.calendar-grid');
+      const dayElements = grid.querySelectorAll('.calendar-day:not(.calendar-day-header)');
+      dayElements.forEach(el => el.remove());
+      
+      // Add days from previous month
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const dayEl = document.createElement('div');
+        dayEl.className = 'calendar-day empty';
+        dayEl.textContent = daysInPrevMonth - i;
+        grid.appendChild(dayEl);
+      }
+      
+      // Add days of current month
+      const today = new Date();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayEl = document.createElement('div');
+        dayEl.className = 'calendar-day';
+        dayEl.textContent = day;
+        
+        // Check if this is today
+        if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+          dayEl.classList.add('is-today');
+        }
+        
+        // Add click handler
+        dayEl.addEventListener('click', function() {
+          const selectedDate = new Date(year, month, day);
+          const dateString = selectedDate.toISOString().split('T')[0];
+          currentSelectedDate = dateString;
+          
+          // Update calendar highlighting
+          document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+          dayEl.classList.add('selected');
+          
+          updateDateDisplay();
+          renderAppointments();
+        });
+        
+        grid.appendChild(dayEl);
+      }
+      
+      // Add days from next month
+      const totalCells = grid.querySelectorAll('.calendar-day').length;
+      const remainingCells = 42 - totalCells;
+      for (let day = 1; day <= remainingCells; day++) {
+        const dayEl = document.createElement('div');
+        dayEl.className = 'calendar-day empty';
+        dayEl.textContent = day;
+        grid.appendChild(dayEl);
+      }
+    }
+
+    // Calendar navigation
+    document.querySelector('.calendar-prev')?.addEventListener('click', function() {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+      generateCalendar();
+    });
+
+    document.querySelector('.calendar-next')?.addEventListener('click', function() {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+      generateCalendar();
+    });
+
+    document.querySelector('.calendar-today-btn')?.addEventListener('click', function() {
+      currentCalendarDate = new Date();
+      currentSelectedDate = getTodayDate();
+      generateCalendar();
+      updateDateDisplay();
+      renderAppointments();
+    });
+
+    // Create appointment card HTML
+    function createAppointmentCardHTML(appointment) {
+      const staff = formatStaffName(appointment.assignedStaff);
+      const type = formatAppointmentType(appointment.appointmentType);
+      const time = formatTime(appointment.appointmentTime);
+      const initials = getInitials(appointment.patientName);
+      
+      return `
+        <article class="appointment-card" data-appointment-id="${appointment.id}">
+          <div class="appointment-time-box">${time}</div>
+          <div class="appointment-patient-info">
+            <span class="appointment-avatar">${initials}</span>
+            <div class="appointment-details">
+              <p class="appointment-patient-name">${appointment.patientName}</p>
+              <p class="appointment-type">${type}</p>
+              <p class="appointment-staff">${staff}</p>
+            </div>
+          </div>
+          <div class="appointment-right">
+            <span class="appointment-status ${appointment.status}">${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)} ●</span>
+            <div class="appointment-actions">
+              <button type="button" class="appointment-action-btn edit-btn" title="Edit appointment" onclick="editAppointment(${appointment.id})">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" class="appointment-action-btn delete-btn" title="Delete appointment" onclick="deleteAppointmentConfirm(${appointment.id})">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    // Render appointments for the selected date and filter
+    function renderAppointments() {
+      const container = document.getElementById('appointmentCardsContainer');
+      const emptyState = document.getElementById('appointmentEmptyState');
+      
+      let appointments = getAppointmentsByDate(currentSelectedDate);
+      
+      // Apply filter
+      if (currentFilter !== 'all') {
+        appointments = appointments.filter(a => a.status === currentFilter);
+      }
+      
+      // Sort by time
+      appointments.sort((a, b) => a.appointmentTime.localeCompare(b.appointmentTime));
+      
+      // Update count
+      const countEl = document.getElementById('appointmentCount');
+      countEl.textContent = appointments.length + (appointments.length === 1 ? ' appointment' : ' appointments');
+      
+      // Clear container
+      container.innerHTML = '';
+      
+      if (appointments.length === 0) {
+        container.classList.add('is-hidden');
+        emptyState.classList.remove('is-hidden');
+      } else {
+        container.classList.remove('is-hidden');
+        emptyState.classList.add('is-hidden');
+        appointments.forEach(appointment => {
+          container.innerHTML += createAppointmentCardHTML(appointment);
+        });
+      }
+    }
+
+    // Update selected date display
+    function updateDateDisplay() {
+      const dateObj = new Date(currentSelectedDate);
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const dateString = dateObj.toLocaleDateString('en-US', options);
+      document.getElementById('selectedDate').textContent = dateString;
+    }
+
+    // Delete appointment with confirmation
+    function deleteAppointmentConfirm(id) {
+      if (confirm('Are you sure you want to delete this appointment?')) {
+        deleteAppointment(id);
+        renderAppointments();
+      }
+    }
+
+    // Edit appointment (placeholder - implement as needed)
+    function editAppointment(id) {
+      // Navigate to edit page with appointment ID
+      window.location.href = 'appointments-edit.html?id=' + id;
+    }
+
+    // Filter button handler
+    document.getElementById('filterBtn')?.addEventListener('click', function() {
+      const menu = document.getElementById('filterMenu');
+      menu?.classList.toggle('is-hidden');
+    });
+
+    // Filter option handlers
+    document.querySelectorAll('.filter-option').forEach(btn => {
+      btn.addEventListener('click', function() {
+        currentFilter = this.dataset.filter;
+        document.getElementById('filterMenu').classList.add('is-hidden');
+        renderAppointments();
+      });
+    });
+
+    // Listen for real-time updates from other tabs/windows
+    window.addEventListener('appointmentsUpdated', function() {
+      renderAppointments();
+    });
+
+    // Listen for localStorage changes from other tabs/windows
+    window.addEventListener('storage', function(e) {
+      if (e.key === STORAGE_APPOINTMENTS_KEY) {
+        renderAppointments();
+      }
+    });
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      generateCalendar();
+      updateDateDisplay();
+      renderAppointments();
+    });
+  </script>
 </html>

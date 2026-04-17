@@ -118,19 +118,19 @@
     <section class="summary-stats" aria-label="Dashboard summary statistics">
       <article class="stat-card stat-appointments">
         <span class="stat-icon" aria-hidden="true"><i class="bi bi-calendar-check-fill"></i></span>
-        <p class="stat-number">4</p>
+        <p class="stat-number" id="dashboardAppointmentCount">0</p>
         <p class="stat-label">Appointments Today</p>
       </article>
 
       <article class="stat-card stat-patients">
         <span class="stat-icon" aria-hidden="true"><i class="bi bi-people-fill"></i></span>
-        <p class="stat-number">4</p>
+        <p class="stat-number" id="dashboardPatientCount">0</p>
         <p class="stat-label">Total Patients</p>
       </article>
 
       <article class="stat-card stat-supplies">
         <span class="stat-icon" aria-hidden="true"><i class="bi bi-clipboard2-pulse-fill"></i></span>
-        <p class="stat-number">128</p>
+        <p class="stat-number" id="dashboardSupplyCount">0</p>
         <p class="stat-label">Supply Items Tracked</p>
       </article>
 
@@ -142,70 +142,8 @@
           <h2 class="panel-title">Today's Appointments</h2>
         </div>
 
-        <div class="appointment-list">
-          <article class="appointment-row">
-            <p class="time-box">08:00 AM</p>
-            <div class="patient-info">
-              <span class="patient-avatar">KT</span>
-              <div>
-                <p class="patient-name">Karlyn Tan</p>
-                <p class="appointment-type">Prenatal Checkup</p>
-              </div>
-            </div>
-            <span class="status-pill status-confirmed">Confirmed</span>
-            <div class="row-actions">
-              <button type="button" class="row-btn">Edit</button>
-              <button type="button" class="row-btn row-btn-delete">Delete</button>
-            </div>
-          </article>
-
-          <article class="appointment-row">
-            <p class="time-box">09:30 AM</p>
-            <div class="patient-info">
-              <span class="patient-avatar">PD</span>
-              <div>
-                <p class="patient-name">Patrisha Devera</p>
-                <p class="appointment-type">Ultrasound Follow-up</p>
-              </div>
-            </div>
-            <span class="status-pill status-pending">Pending</span>
-            <div class="row-actions">
-              <button type="button" class="row-btn">Edit</button>
-              <button type="button" class="row-btn row-btn-delete">Delete</button>
-            </div>
-          </article>
-
-          <article class="appointment-row">
-            <p class="time-box">11:00 AM</p>
-            <div class="patient-info">
-              <span class="patient-avatar">CE</span>
-              <div>
-                <p class="patient-name">Cendy Estacio</p>
-                <p class="appointment-type">Postnatal Consultation</p>
-              </div>
-            </div>
-            <span class="status-pill status-done">Done</span>
-            <div class="row-actions">
-              <button type="button" class="row-btn">Edit</button>
-              <button type="button" class="row-btn row-btn-delete">Delete</button>
-            </div>
-          </article>
-
-          <article class="appointment-row">
-            <p class="time-box">02:00 PM</p>
-            <div class="patient-info">
-              <span class="patient-avatar">AL</span>
-              <div>
-                <p class="patient-name">Aldrin Lim</p>
-                <p class="appointment-type">Vaccination Visit</p>
-              </div>
-            </div>
-            <span class="status-pill status-upcoming">Upcoming</span>
-            <div class="row-actions">
-              <button type="button" class="row-btn">Edit</button>
-              <button type="button" class="row-btn row-btn-delete">Delete</button>
-            </div>
-          </article>
+        <div class="appointment-list" id="dashboardAppointmentList">
+          <!-- Populated dynamically from appointments.js -->
         </div>
       </section>
 
@@ -228,6 +166,9 @@
   <!-- Global utilities and storage -->
   <script src="storage-utils.js"></script>
   
+  <!-- Appointment data management -->
+  <script src="appointments.js"></script>
+  
   <!-- Feature-specific managers -->
   <script src="role-manager.js"></script>
   <script src="auth-manager.js"></script>
@@ -235,5 +176,86 @@
   
   <!-- Dashboard inventory display -->
   <script src="inventory-dashboard.js"></script>
+  
+  <!-- Dashboard appointment rendering -->
+  <script src="patients.js"></script>
+  <script>
+    function renderDashboardAppointments() {
+      const appointments = getTodayAppointments();
+      const container = document.getElementById('dashboardAppointmentList');
+      const counter = document.getElementById('dashboardAppointmentCount');
+      
+      // Update counter
+      counter.textContent = appointments.length;
+      
+      // Sort by time
+      appointments.sort((a, b) => a.appointmentTime.localeCompare(b.appointmentTime));
+      
+      // Clear container
+      container.innerHTML = '';
+      
+      // Render appointments
+      appointments.forEach(appointment => {
+        const initials = getInitials(appointment.patientName);
+        const staff = formatStaffName(appointment.assignedStaff);
+        const type = formatAppointmentType(appointment.appointmentType);
+        
+        const html = `
+          <article class="appointment-row" data-appointment-id="${appointment.id}">
+            <p class="time-box">${formatTime(appointment.appointmentTime)}</p>
+            <div class="patient-info">
+              <span class="patient-avatar">${initials}</span>
+              <div>
+                <p class="patient-name">${appointment.patientName}</p>
+                <p class="appointment-type">${type}</p>
+              </div>
+            </div>
+            <span class="status-pill status-${appointment.status}">${appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}</span>
+          </article>
+        `;
+        container.innerHTML += html;
+      });
+    }
+
+    function updatePatientCount() {
+      const patients = loadPatients();
+      const counter = document.getElementById('dashboardPatientCount');
+      counter.textContent = patients.length;
+    }
+
+    function updateSupplyCount() {
+      const items = JSON.parse(localStorage.getItem('inventoryItems')) || [];
+      const counter = document.getElementById('dashboardSupplyCount');
+      counter.textContent = items.length;
+    }
+    
+    function deleteDashboardAppointment(id) {
+      if (confirm('Delete this appointment?')) {
+        deleteAppointment(id);
+        renderDashboardAppointments();
+      }
+    }
+    
+    // Listen for real-time updates
+    window.addEventListener('appointmentsUpdated', renderDashboardAppointments);
+    window.addEventListener('storage', function(e) {
+      if (e.key === STORAGE_APPOINTMENTS_KEY) {
+        renderDashboardAppointments();
+      }
+      if (e.key === STORAGE_PATIENTS_KEY) {
+        updatePatientCount();
+      }
+      if (e.key === 'inventoryItems') {
+        updateSupplyCount();
+      }
+    });
+    
+    // Initial render
+    document.addEventListener('DOMContentLoaded', function() {
+      renderDashboardAppointments();
+      updatePatientCount();
+      updateSupplyCount();
+    });
+  </script>
 </body>
 </html>

@@ -97,15 +97,25 @@ form?.addEventListener('submit', function(e) {
   }
   
   if (isValid) {
+    // Collect appointment data
+    const appointmentData = {
+      patientName: patientNameInput.value.trim(),
+      contactNumber: contactNumberInput.value.trim(),
+      appointmentDate: appointmentDateInput.value,
+      appointmentTime: appointmentTimeInput.value,
+      appointmentType: appointmentTypeInput.value,
+      assignedStaff: assignedStaffInput.value,
+      notes: notesInput.value.trim()
+    };
+    
+    // Save appointment to localStorage
+    addAppointment(appointmentData);
+    
     // Show success toast
     const toast = document.getElementById('successToast');
     toast?.classList.remove('is-hidden');
     
-    // Auto-dismiss toast after 3 seconds
-    setTimeout(() => {
-      toast?.classList.add('is-hidden');
-      // Redirect to appointments page
-      window.location.href = 'appointments.html';
-    }, 3000);
+    // Redirect immediately to appointments page
+    window.location.href = 'appointments.html';
   }
 });

@@ -246,5 +246,104 @@
   
   <!-- Page-specific functionality -->
   <script src="patients.js"></script>
+  
+  <!-- Patient display and rendering -->
+  <script>
+    let currentSearch = '';
+    let currentStatus = 'all';
+    let currentSort = 'name-asc';
+
+    // Render patients table
+    function renderPatientsTable() {
+      const patients = loadPatients();
+      const filtered = applyFiltersAndSort(patients, currentSearch, currentStatus, currentSort);
+      const tbody = document.getElementById('patientsTableBody');
+      
+      // Clear table
+      tbody.innerHTML = '';
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="empty-state">
+              <p>No patients found. Click "Add New Patient" to get started.</p>
+            </td>
+          </tr>
+        `;
+      } else {
+        filtered.forEach(patient => {
+          const row = `
+            <tr>
+              <td>${patient.fullName}</td>
+              <td>${patient.age}</td>
+              <td>${patient.contact}</td>
+              <td>${patient.email || '-'}</td>
+              <td>${patient.medicalHistory || '-'}</td>
+              <td><span class="status-badge status-${patient.status}">${patient.status}</span></td>
+              <td>${formatDate(patient.dateAdded)}</td>
+              <td>
+                <button class="action-btn edit-btn" onclick="editPatient(${patient.id})" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="action-btn delete-btn" onclick="deletePatient(${patient.id})" title="Delete">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+      }
+      
+      // Update stats
+      updateStats();
+    }
+
+    function editPatient(id) {
+      console.log('Edit patient:', id);
+      // TODO: Implement edit functionality
+    }
+
+    function deletePatient(id) {
+      if (confirm('Are you sure you want to delete this patient?')) {
+        const patients = loadPatients();
+        const filtered = patients.filter(p => p.id !== id);
+        savePatients(filtered);
+        renderPatientsTable();
+      }
+    }
+
+    // Event listeners
+    document.getElementById('patientSearchInput')?.addEventListener('input', function() {
+      currentSearch = this.value;
+      renderPatientsTable();
+    });
+
+    document.getElementById('filterStatus')?.addEventListener('change', function() {
+      currentStatus = this.value;
+      renderPatientsTable();
+    });
+
+    document.getElementById('sortBy')?.addEventListener('change', function() {
+      currentSort = this.value;
+      renderPatientsTable();
+    });
+
+    document.getElementById('addNewPatientBtn')?.addEventListener('click', function() {
+      window.location.href = 'patients-add.html';
+    });
+
+    // Listen for updates from other tabs
+    window.addEventListener('storage', function(e) {
+      if (e.key === STORAGE_PATIENTS_KEY) {
+        renderPatientsTable();
+      }
+    });
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      renderPatientsTable();
+    });
+  </script>
 </body>
 </html>

@@ -1,0 +1,177 @@
+@model MaterniTrack.Models.ViewModels.ActivityLogViewModel
+@{
+    ViewData["Title"] = "Activity Logs";
+    ViewData["BodyClass"] = "settings-page";
+    ViewData["ActiveSettingsTab"] = "ActivityLogs";
+}
+
+@section Styles {
+  <link rel="stylesheet" href="~/css/settings-users.css">
+  <style>
+    .cat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .cat-Auth { background: #E6F1FB; color: #1e5a96; border: 1px solid #B5D4F4; }
+    .cat-Patients { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+    .cat-Appointments { background: #f3e8fd; color: #6b21a8; border: 1px solid #e9d5ff; }
+    .cat-Inventory { background: #FFF8E1; color: #7a5c00; border: 1px solid #FFE082; }
+    .cat-Settings { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+
+    .sev-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .sev-Success { background: #dcfce7; color: #15803d; }
+    .sev-Info { background: #e0f2fe; color: #0369a1; }
+    .sev-Warning { background: #fef3c7; color: #b45309; }
+    .sev-Danger { background: #fee2e2; color: #b91c1c; }
+
+    .log-table th {
+      white-space: nowrap;
+    }
+  </style>
+}
+
+<main class="settings-layout">
+  <partial name="_SettingsSidebar" />
+
+  <section class="settings-main" aria-label="Activity logs audit trail">
+    <header class="settings-header">
+      <div>
+        <h1 class="settings-title">Activity Logs</h1>
+        <p class="settings-subtitle">Comprehensive audit trail of clinic events, user logins, and record changes.</p>
+      </div>
+      <div>
+        <a asp-controller="Settings" asp-action="ExportActivityLogsCsv" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+          <i class="bi bi-download"></i>
+          Export CSV
+        </a>
+      </div>
+    </header>
+
+    <!-- Stats summary -->
+    <section class="stats-row" aria-label="Activity statistics">
+      <article class="stat-card">
+        <span class="stat-icon stat-icon--green" aria-hidden="true"><i class="bi bi-journal-text"></i></span>
+        <p class="stat-number">@Model.TotalLogsCount</p>
+        <p class="stat-label">Total Logged Events</p>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-icon stat-icon--blue" aria-hidden="true"><i class="bi bi-people-fill"></i></span>
+        <p class="stat-number">@Model.PatientCount</p>
+        <p class="stat-label">Patient Actions</p>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-icon stat-icon--amber" aria-hidden="true"><i class="bi bi-calendar-event-fill"></i></span>
+        <p class="stat-number">@Model.AppointmentCount</p>
+        <p class="stat-label">Appointment Events</p>
+      </article>
+    </section>
+
+    <!-- Filters & Search -->
+    <section class="search-filters" aria-label="Search and filter activity logs">
+      <form method="get" asp-controller="Settings" asp-action="ActivityLogs" id="logFilterForm" style="display: flex; gap: 14px; width: 100%; flex-wrap: wrap;">
+        <div class="search-field" style="flex: 1; min-width: 260px;">
+          <label class="filter-label" for="logSearch">Search logs</label>
+          <div class="search-input-wrapper">
+            <span class="search-icon" aria-hidden="true"><i class="bi bi-search"></i></span>
+            <input
+              id="logSearch"
+              name="search"
+              class="search-input"
+              type="text"
+              placeholder="Search action, staff member, or notes..."
+              value="@Model.CurrentSearch"
+            />
+          </div>
+        </div>
+
+        <div class="filter-field" style="min-width: 180px;">
+          <label class="filter-label" for="categoryFilter">Category</label>
+          <select id="categoryFilter" name="category" class="filter-select" onchange="this.form.submit()">
+            <option value="all" selected="@(Model.CurrentCategory == "all")">All Categories</option>
+            <option value="Authentication" selected="@(Model.CurrentCategory == "Authentication")">Authentication</option>
+            <option value="Patients" selected="@(Model.CurrentCategory == "Patients")">Patients</option>
+            <option value="Appointments" selected="@(Model.CurrentCategory == "Appointments")">Appointments</option>
+            <option value="Inventory" selected="@(Model.CurrentCategory == "Inventory")">Inventory</option>
+            <option value="Settings" selected="@(Model.CurrentCategory == "Settings")">Settings</option>
+          </select>
+        </div>
+
+        <div style="display: flex; align-items: flex-end;">
+          <button type="submit" class="btn-primary" style="height: 44px; padding: 0 18px;">
+            Search
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Logs Table -->
+    <div class="table-container">
+      <table class="staff-table log-table" aria-label="System activity log entries">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Category</th>
+            <th>Action</th>
+            <th>Staff</th>
+            <th>Event Details</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (!Model.Logs.Any())
+          {
+            <tr>
+              <td colspan="6" style="padding: 24px; text-align: center; color: var(--text-muted);">
+                No activity logs match your filter criteria.
+              </td>
+            </tr>
+          }
+          else
+          {
+            @foreach (var log in Model.Logs)
+            {
+              var catClass = $"cat-{log.Category}";
+              var sevClass = $"sev-{log.Severity}";
+              <tr>
+                <td style="white-space: nowrap; font-size: 13px; color: var(--text-muted); font-weight: 600;">
+                  <i class="bi bi-clock" style="margin-right: 4px;"></i>
+                  @log.Timestamp.ToString("MMM dd, yyyy HH:mm")
+                </td>
+                <td>
+                  <span class="cat-badge @catClass">@log.Category</span>
+                </td>
+                <td style="font-weight: 700; color: var(--text-green);">
+                  @log.Action
+                </td>
+                <td style="font-size: 13px; font-weight: 600; color: var(--text-green);">
+                  @log.PerformedBy
+                </td>
+                <td style="font-size: 13px; color: var(--text-muted); max-width: 320px;">
+                  @log.Details
+                </td>
+                <td>
+                  <span class="sev-pill @sevClass">@log.Severity</span>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

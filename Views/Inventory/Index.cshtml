@@ -1,0 +1,285 @@
+@model IEnumerable<MaterniTrack.Models.InventoryItem>
+@{
+    ViewData["Title"] = "Inventory";
+    ViewData["BodyClass"] = "inventory-page";
+
+    string search   = ViewBag.CurrentSearch as string ?? "";
+    string category = ViewBag.CurrentCategory as string ?? "";
+    string status   = ViewBag.CurrentStatus as string ?? "";
+    string sortBy   = ViewBag.CurrentSort as string ?? "name-asc";
+    var lowStockNames = ViewBag.LowStockItems as List<string> ?? new List<string>();
+    int rowNum = 1;
+}
+
+@section Styles {
+  <link rel="stylesheet" href="~/css/inventory.css">
+}
+
+<main class="inventory-main">
+
+    @* Low Stock Alert Banner *@
+    @if (lowStockNames.Count > 0)
+    {
+      <div class="alert-banner" role="alert" aria-live="polite">
+        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        <span>
+          <strong>Low/Out-of-stock alert:</strong>
+          @string.Join(", ", lowStockNames.Take(5))
+          @if (lowStockNames.Count > 5) { <span>and @(lowStockNames.Count - 5) more item(s).</span> }
+        </span>
+      </div>
+    }
+
+    @if (ViewBag.SuccessMessage != null)
+    {
+      <div style="background:#d1fae5;border-left:4px solid #10b981;color:#065f46;padding:12px 16px;border-radius:6px;margin-bottom:16px;font-size:14px;font-weight:500;">
+        <i class="bi bi-check-circle-fill"></i> @ViewBag.SuccessMessage
+      </div>
+    }
+
+    <!-- Page Header -->
+    <section class="page-header" aria-label="Page header">
+      <div class="header-left">
+        <div class="header-icon" aria-hidden="true"><i class="bi bi-box2"></i></div>
+        <div>
+          <h1 class="page-title">Inventory</h1>
+          <p class="page-subtitle">Monitor and manage medical supply stocks for Real-Mendoza Maternity Clinic</p>
+        </div>
+      </div>
+      <a asp-action="Create" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> Add New Item
+      </a>
+    </section>
+
+    <!-- Stat Cards -->
+    <section class="stat-cards" aria-label="Inventory summary">
+      <article class="stat-card">
+        <div class="stat-icon" style="background:#E1F5EE;" aria-hidden="true">
+          <i class="bi bi-box-seam" style="color:#0F6E56;"></i>
+        </div>
+        <p class="stat-label">Total items tracked</p>
+        <p class="stat-number">@ViewBag.TotalItems</p>
+      </article>
+      <article class="stat-card">
+        <div class="stat-icon" style="background:#FCEBEB;" aria-hidden="true">
+          <i class="bi bi-exclamation-circle-fill" style="color:#A32D2D;"></i>
+        </div>
+        <p class="stat-label">Low stock items</p>
+        <p class="stat-number" style="color:#A32D2D;">@ViewBag.LowStockCount</p>
+      </article>
+      <article class="stat-card">
+        <div class="stat-icon" style="background:#FAEEDA;" aria-hidden="true">
+          <i class="bi bi-calendar-event" style="color:#BA7517;"></i>
+        </div>
+        <p class="stat-label">Expiring within 30 days</p>
+        <p class="stat-number" style="color:#BA7517;">@ViewBag.ExpiringCount</p>
+      </article>
+      <article class="stat-card">
+        <div class="stat-icon" style="background:#FCEBEB;" aria-hidden="true">
+          <i class="bi bi-x-circle-fill" style="color:#A32D2D;"></i>
+        </div>
+        <p class="stat-label">Out of stock</p>
+        <p class="stat-number" style="color:#A32D2D;">@ViewBag.OutOfStockCount</p>
+      </article>
+    </section>
+
+    <!-- Search, Filter & Sort -->
+    <form method="get" asp-action="Index" id="filterForm">
+      <section class="filter-bar" aria-label="Search and filter controls">
+        <div class="search-input-wrap">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <input type="text" name="search" class="search-input" value="@search"
+                 placeholder="Search by item name or supplier..."
+                 onchange="this.form.submit()">
+        </div>
+
+        <select name="category" class="filter-select" onchange="this.form.submit()">
+          <option value="" selected="@(category == "")">All Categories</option>
+          <option value="Medicine"  selected="@(category == "Medicine")">Medicine</option>
+          <option value="Equipment" selected="@(category == "Equipment")">Equipment</option>
+          <option value="Supplies"  selected="@(category == "Supplies")">Supplies</option>
+        </select>
+
+        <select name="status" class="filter-select" onchange="this.form.submit()">
+          <option value=""              selected="@(status == "")">All Status</option>
+          <option value="Good Stock"    selected="@(status == "Good Stock")">Good Stock</option>
+          <option value="Low Stock"     selected="@(status == "Low Stock")">Low Stock</option>
+          <option value="Expiring Soon" selected="@(status == "Expiring Soon")">Expiring Soon</option>
+          <option value="Out of Stock"  selected="@(status == "Out of Stock")">Out of Stock</option>
+        </select>
+
+        <select name="sortBy" class="filter-select" onchange="this.form.submit()">
+          <option value="name-asc"   selected="@(sortBy == "name-asc")">Name (A–Z)</option>
+          <option value="name-desc"  selected="@(sortBy == "name-desc")">Name (Z–A)</option>
+          <option value="qty-asc"    selected="@(sortBy == "qty-asc")">Quantity (Low to High)</option>
+          <option value="qty-desc"   selected="@(sortBy == "qty-desc")">Quantity (High to Low)</option>
+          <option value="expiry-asc" selected="@(sortBy == "expiry-asc")">Expiration Date (Nearest)</option>
+        </select>
+      </section>
+    </form>
+
+    <!-- Inventory Table -->
+    <section class="table-wrapper" aria-label="Inventory items">
+      <table class="inventory-table">
+        <thead class="table-head">
+          <tr>
+            <th class="th">#</th>
+            <th class="th">Item Name</th>
+            <th class="th">Category</th>
+            <th class="th">Quantity</th>
+            <th class="th">Reorder Level</th>
+            <th class="th">Expiration Date</th>
+            <th class="th">Supplier</th>
+            <th class="th">Last Updated</th>
+            <th class="th">Status</th>
+            <th class="th">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (!Model.Any())
+          {
+            <tr>
+              <td colspan="10">
+                <div class="empty-state">
+                  <div class="empty-state-icon" aria-hidden="true"><i class="bi bi-inbox"></i></div>
+                  <p class="empty-state-title">No inventory items found</p>
+                  <p class="empty-state-text">Try adjusting your search or filters.</p>
+                  <a asp-action="Create" class="btn-primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-top:12px;">
+                    <i class="bi bi-plus-lg"></i> Add New Item
+                  </a>
+                </div>
+              </td>
+            </tr>
+          }
+          else
+          {
+            @foreach (var item in Model)
+            {
+              var itemStatus = item.CalculateStatus();
+              var statusCls = itemStatus switch {
+                "Out of Stock"  => "badge-out-of-stock",
+                "Low Stock"     => "badge-low-stock",
+                "Expiring Soon" => "badge-expiring",
+                _               => "badge-good"
+              };
+
+              <tr>
+                <td>@(rowNum++)</td>
+                <td><strong>@item.Name</strong></td>
+                <td><span class="category-badge">@item.Category</span></td>
+                <td>@item.Quantity <span style="color:#888;font-size:11px;">@item.Unit</span></td>
+                <td>@item.ReorderLevel</td>
+                <td class="@(item.ExpirationDate.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber <= 30 && item.ExpirationDate >= DateOnly.FromDateTime(DateTime.Today) ? "expiry-soon" : "")">
+                  @item.ExpirationDate.ToString("MMM dd, yyyy")
+                </td>
+                <td>@(item.Supplier ?? "—")</td>
+                <td>@item.LastUpdated.ToString("MMM dd, yyyy")</td>
+                <td><span class="status-badge @statusCls">@itemStatus</span></td>
+                <td>
+                  <div class="action-btn-group">
+                    <button type="button" class="action-btn"
+                            onclick="openQuickUpdate(@item.Id, '@item.Name.Replace("'", "\\'")' , @item.Quantity, '@item.Unit')"
+                            title="Quick stock update">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="action-btn" title="Edit item" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">
+                      <i class="bi bi-gear"></i>
+                    </a>
+                    <button type="button" class="action-btn action-btn-delete"
+                            onclick="openDeleteModal(@item.Id, '@item.Name.Replace("'", "\\'")' )"
+                            title="Delete item">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </section>
+</main>
+
+<!-- Quick Update Modal -->
+<div class="modal-overlay is-hidden" id="quickUpdateModal" role="dialog" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-title">Quick Stock Update</div>
+    <div class="modal-item-name" id="modalItemName"></div>
+    <div class="modal-current">Current Stock: <strong><span id="modalCurrentQty"></span></strong></div>
+    <div class="form-group" style="margin-top:16px;">
+      <label class="form-label">New Quantity</label>
+      <div class="input-wrap">
+        <input type="number" class="form-input" id="modalNewQty" placeholder="Enter new quantity" min="0">
+        <span class="qty-unit" id="modalUnit">pcs</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeQuickUpdate()">Cancel</button>
+      <form id="quickUpdateForm" asp-action="QuickUpdate" method="post" style="display:inline;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" id="quickUpdateId">
+        <input type="hidden" name="newQuantity" id="quickUpdateQty">
+        <button type="button" class="btn-save" onclick="submitQuickUpdate()">Update Stock</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay is-hidden" id="deleteModal" role="dialog" aria-hidden="true">
+  <div class="modal-card">
+    <div class="modal-title" style="color:#a32d2d;">Delete Item?</div>
+    <p class="modal-message">
+      Are you sure you want to delete <strong id="deleteItemName"></strong> from the inventory?<br>
+      This action cannot be undone.
+    </p>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+      <form id="deleteForm" asp-action="Delete" method="post" style="display:inline;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" id="deleteItemId">
+        <button type="submit" class="btn-delete">Delete Item</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<script>
+  // Quick Update Modal
+  function openQuickUpdate(id, name, qty, unit) {
+    document.getElementById('modalItemName').textContent = name;
+    document.getElementById('modalCurrentQty').textContent = qty + ' ' + unit;
+    document.getElementById('modalUnit').textContent = unit;
+    document.getElementById('modalNewQty').value = qty;
+    document.getElementById('quickUpdateId').value = id;
+    document.getElementById('quickUpdateModal').classList.remove('is-hidden');
+    document.getElementById('modalNewQty').focus();
+  }
+  function closeQuickUpdate() {
+    document.getElementById('quickUpdateModal').classList.add('is-hidden');
+  }
+  function submitQuickUpdate() {
+    const qty = document.getElementById('modalNewQty').value;
+    document.getElementById('quickUpdateQty').value = qty;
+    document.getElementById('quickUpdateForm').submit();
+  }
+
+  // Delete Modal
+  function openDeleteModal(id, name) {
+    document.getElementById('deleteItemId').value = id;
+    document.getElementById('deleteItemName').textContent = name;
+    document.getElementById('deleteModal').classList.remove('is-hidden');
+  }
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('is-hidden');
+  }
+
+  // Close modals on backdrop click
+  ['quickUpdateModal', 'deleteModal'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.add('is-hidden');
+    });
+  });
+</script>
+}

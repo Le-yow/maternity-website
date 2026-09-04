@@ -1,0 +1,232 @@
+@model MaterniTrack.Models.ViewModels.LoginViewModel
+@{
+    Layout = null;
+}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MaterniTrack - Login</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="~/css/login.css">
+</head>
+<body class="login-page">
+  <main class="login-layout">
+    <section class="left-panel" aria-label="MaterniTrack overview">
+      <div class="left-panel-decor" aria-hidden="true">
+        <span class="decor-circle decor-circle--tr"></span>
+        <span class="decor-circle decor-circle--bl"></span>
+      </div>
+
+      <div class="left-panel-content">
+        <header class="login-brand">
+          <div class="logo-icon" aria-hidden="true">
+            <div class="logo-mark"></div>
+          </div>
+          <div class="login-brand-text">
+            <p class="logo-title">MaterniTrack</p>
+            <p class="logo-tagline">Clinic Management System</p>
+          </div>
+        </header>
+
+        <div class="login-welcome">
+          <h1 class="welcome-heading">Welcome back to MaterniTrack</h1>
+          <p class="welcome-description">
+            One secure place for schedules, inventory, alerts, and reporting — built for busy clinic staff.
+          </p>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <span class="feature-check" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+              <span class="feature-text">Manage patient appointments easily</span>
+            </li>
+            <li class="feature-item">
+              <span class="feature-check" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+              <span class="feature-text">Monitor medical supply inventory</span>
+            </li>
+            <li class="feature-item">
+              <span class="feature-check" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+              <span class="feature-text">Get low stock alerts instantly</span>
+            </li>
+            <li class="feature-item">
+              <span class="feature-check" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+              <span class="feature-text">Generate reports in one click</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="clinic-card">
+          <div class="clinic-card-icon" aria-hidden="true">
+            <i class="bi bi-geo-alt-fill"></i>
+          </div>
+          <div class="clinic-card-text">
+            <p class="clinic-name">Real-Mendoza Maternity Clinic</p>
+            <p class="clinic-address">District 2, Marikina City, Philippines</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="right-panel" aria-label="Staff login">
+      <div class="login-form-wrap">
+        <header class="login-form-header">
+          <h2 class="form-title">Staff Login</h2>
+          <p class="form-subtitle">
+            Sign in to access the clinic dashboard. Only authorized clinic staff can log in.
+          </p>
+        </header>
+
+        <footer class="login-page-footer login-page-footer--sticky" aria-label="Login page footer">
+          <span class="footer-line1">MaterniTrack © 2026 · STI College Cubao</span>
+          <span class="footer-line2">BSIT Capstone</span>
+        </footer>
+
+        <p class="role-section-label" id="roleSelectorLabel">Who are you logging in as?</p>
+        <div
+          class="role-selector"
+          role="radiogroup"
+          aria-labelledby="roleSelectorLabel"
+        >
+          <button
+            type="button"
+            class="role-card role-card--admin is-selected"
+            id="roleBtnAdmin"
+            data-role="admin"
+            role="radio"
+            aria-checked="true"
+          >
+            <span class="role-card-icon role-card-icon--admin" aria-hidden="true">
+              <i class="bi bi-check-lg"></i>
+            </span>
+            <span class="role-card-text">
+              <span class="role-card-title">Doctor / Admin</span>
+              <span class="role-card-desc">Full system access</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            class="role-card role-card--staff"
+            id="roleBtnStaff"
+            data-role="staff"
+            role="radio"
+            aria-checked="false"
+          >
+            <span class="role-card-icon role-card-icon--staff" aria-hidden="true">
+              <i class="bi bi-person-fill"></i>
+            </span>
+            <span class="role-card-text">
+              <span class="role-card-title">Staff</span>
+              <span class="role-card-desc">Appointments &amp; inventory</span>
+            </span>
+          </button>
+        </div>
+
+        <form class="login-form" asp-controller="Account" asp-action="Login" method="post" novalidate>
+          @Html.AntiForgeryToken()
+          <input type="hidden" asp-for="ReturnUrl" />
+          <input type="hidden" asp-for="SelectedRole" id="selectedRoleInput" value="admin" />
+
+          @if (!ViewData.ModelState.IsValid && ViewData.ModelState[string.Empty]?.Errors.Count > 0)
+          {
+            <div class="login-error" role="alert">
+              @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+              {
+                <p style="margin: 0;">@error.ErrorMessage</p>
+              }
+            </div>
+          }
+
+          <div class="form-field">
+            <label class="field-label" asp-for="Username">Username or Email</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon" aria-hidden="true"><i class="bi bi-person"></i></span>
+              <input
+                class="field-input field-input--icon"
+                asp-for="Username"
+                id="username"
+                type="text"
+                autocomplete="username"
+                placeholder="e.g. admin@clinic.local or staff@clinic.local"
+                required
+              >
+            </div>
+            <span asp-validation-for="Username" class="text-danger" style="font-size: 12px; color: #dc2626;"></span>
+          </div>
+
+          <div class="form-field">
+            <label class="field-label" asp-for="Password">Password</label>
+            <div class="input-icon-wrap">
+              <span class="input-icon" aria-hidden="true"><i class="bi bi-lock-fill"></i></span>
+              <input
+                class="field-input field-input--icon"
+                asp-for="Password"
+                id="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Enter your password"
+                required
+              >
+            </div>
+            <span asp-validation-for="Password" class="text-danger" style="font-size: 12px; color: #dc2626;"></span>
+          </div>
+
+          <div class="form-row-extras">
+            <label class="remember-wrap">
+              <input type="checkbox" class="remember-input" asp-for="RememberMe">
+              <span class="remember-label">Remember me</span>
+            </label>
+            <a href="#" class="link-forgot" onclick="alert('For demo accounts: \n• Doctor/Admin: admin@clinic.local / Admin123!\n• Staff: staff@clinic.local / Staff123!'); return false;">Quick Demo Help</a>
+          </div>
+
+          <button type="submit" class="btn-login-primary" id="btnLoginSubmit">Log In to MaterniTrack</button>
+        </form>
+
+        <div class="auth-notice-card" role="note">
+          For authorized clinic staff only. 
+          <br><small style="color: #4b6b5a;">Demo credentials: <strong>admin@clinic.local</strong> (Admin123!) or <strong>staff@clinic.local</strong> (Staff123!)</small>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const roleBtnAdmin = document.getElementById('roleBtnAdmin');
+    const roleBtnStaff = document.getElementById('roleBtnStaff');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const selectedRoleInput = document.getElementById('selectedRoleInput');
+
+    function setRole(role) {
+      if (role === 'admin') {
+        roleBtnAdmin.classList.add('is-selected');
+        roleBtnAdmin.setAttribute('aria-checked', 'true');
+        roleBtnStaff.classList.remove('is-selected');
+        roleBtnStaff.setAttribute('aria-checked', 'false');
+        selectedRoleInput.value = 'admin';
+        if (!usernameInput.value || usernameInput.value === 'staff@clinic.local') {
+          usernameInput.value = 'admin@clinic.local';
+          passwordInput.value = 'Admin123!';
+        }
+      } else {
+        roleBtnStaff.classList.add('is-selected');
+        roleBtnStaff.setAttribute('aria-checked', 'true');
+        roleBtnAdmin.classList.remove('is-selected');
+        roleBtnAdmin.setAttribute('aria-checked', 'false');
+        selectedRoleInput.value = 'staff';
+        if (!usernameInput.value || usernameInput.value === 'admin@clinic.local') {
+          usernameInput.value = 'staff@clinic.local';
+          passwordInput.value = 'Staff123!';
+        }
+      }
+    }
+
+    roleBtnAdmin?.addEventListener('click', () => setRole('admin'));
+    roleBtnStaff?.addEventListener('click', () => setRole('staff'));
+
+    // Set initial autofill for demo ease
+    if (!usernameInput.value) {
+      setRole('admin');
+    }
+  </script>
+</body>
+</html>

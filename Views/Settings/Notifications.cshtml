@@ -1,0 +1,237 @@
+@model MaterniTrack.Models.ClinicProfileSetting
+@{
+    ViewData["Title"] = "Notification Settings";
+    ViewData["BodyClass"] = "settings-page";
+    ViewData["ActiveSettingsTab"] = "Notifications";
+}
+
+@section Styles {
+  <link rel="stylesheet" href="~/css/settings-users.css">
+  <style>
+    .notif-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 6px rgba(13, 61, 40, 0.04);
+    }
+    .notif-card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-green);
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .notif-card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0 0 20px;
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid #edf5f1;
+      gap: 16px;
+    }
+    .toggle-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .toggle-info {
+      flex: 1;
+    }
+    .toggle-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-green);
+      margin: 0 0 4px;
+    }
+    .toggle-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+    /* Switch toggle styling */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 52px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #cbd5e1;
+      transition: .3s;
+      border-radius: 28px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    input:checked + .slider {
+      background-color: var(--primary-green);
+    }
+    input:focus + .slider {
+      box-shadow: 0 0 1px var(--primary-green);
+    }
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+    .alert-banner {
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+    .alert-success {
+      background: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      color: #2e7d32;
+    }
+  </style>
+}
+
+<main class="settings-layout">
+  <partial name="_SettingsSidebar" />
+
+  <section class="settings-main" aria-label="Notification Preferences">
+    <header class="settings-header">
+      <div>
+        <h1 class="settings-title">Notification Preferences</h1>
+        <p class="settings-subtitle">Manage automated notifications, clinical alerts, and staff restock triggers.</p>
+      </div>
+    </header>
+
+    @if (ViewBag.SuccessMessage != null)
+    {
+      <div class="alert-banner alert-success" role="alert">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>@ViewBag.SuccessMessage</span>
+      </div>
+    }
+
+    <form asp-controller="Settings" asp-action="Notifications" method="post">
+      @Html.AntiForgeryToken()
+      <input type="hidden" asp-for="Id" />
+
+      <!-- Appointment Notifications -->
+      <div class="notif-card">
+        <h3 class="notif-card-title">
+          <i class="bi bi-calendar2-check-fill" style="color: var(--primary-green);"></i>
+          Appointment & Patient Reminders
+        </h3>
+        <p class="notif-card-desc">Configure automatic messaging sent to patients and clinical staff regarding visits.</p>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <h4 class="toggle-title">SMS Appointment Reminders</h4>
+            <p class="toggle-desc">Automatically dispatch an SMS reminder to registered contact numbers 24 hours prior to appointment.</p>
+          </div>
+          <label class="switch" aria-label="Toggle SMS Reminders">
+            <input type="checkbox" asp-for="SmsRemindersEnabled" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <h4 class="toggle-title">Email Visit Confirmations</h4>
+            <p class="toggle-desc">Send immediate appointment booking confirmations and schedule changes to the patient's registered email address.</p>
+          </div>
+          <label class="switch" aria-label="Toggle Email Confirmations">
+            <input type="checkbox" asp-for="EmailRemindersEnabled" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <h4 class="toggle-title">Physician Booking Conflict Warning</h4>
+            <p class="toggle-desc">Prompt clinical staff immediately if double-booking or slot overlaps occur during appointment scheduling.</p>
+          </div>
+          <label class="switch" aria-label="Toggle Booking Conflict Warning">
+            <input type="checkbox" asp-for="ConflictAlertsEnabled" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Clinical & Medical Safety -->
+      <div class="notif-card">
+        <h3 class="notif-card-title">
+          <i class="bi bi-heart-pulse-fill" style="color: #ba7517;"></i>
+          Clinical & Prenatal Safety Alerts
+        </h3>
+        <p class="notif-card-desc">Flags high-priority obstetric scenarios directly on the clinical dashboard.</p>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <h4 class="toggle-title">High-Risk Pregnancy Highlight</h4>
+            <p class="toggle-desc">Visually badge patients with documented medical risks (e.g., gestational diabetes, preeclampsia history, hypertension).</p>
+          </div>
+          <label class="switch" aria-label="Toggle High Risk Flag">
+            <input type="checkbox" asp-for="HighRiskFlagsEnabled" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <h4 class="toggle-title">Critical Low Supply Banners</h4>
+            <p class="toggle-desc">Display an urgent warning across all dashboard headers whenever any medical item reaches zero or falls below reorder level.</p>
+          </div>
+          <label class="switch" aria-label="Toggle Low Supply Banners">
+            <input type="checkbox" asp-for="LowStockAlertsEnabled" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <h4 class="toggle-title">Daily Operations Summary Digest</h4>
+            <p class="toggle-desc">Deliver an automated daily overview report of total patients seen, pending visits, and restock needs to the clinic administrator.</p>
+          </div>
+          <label class="switch" aria-label="Toggle Daily Digest">
+            <input type="checkbox" asp-for="DailyDigestEnabled" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
+        <button type="submit" class="btn-primary" style="padding: 12px 28px; font-size: 14px;">
+          <i class="bi bi-floppy-fill" style="margin-right: 6px;"></i>
+          Save Preferences
+        </button>
+      </div>
+    </form>
+  </section>
+</main>

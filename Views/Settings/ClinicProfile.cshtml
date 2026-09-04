@@ -1,0 +1,253 @@
+@model MaterniTrack.Models.ClinicProfileSetting
+@{
+    ViewData["Title"] = "Clinic Profile";
+    ViewData["BodyClass"] = "settings-page";
+    ViewData["ActiveSettingsTab"] = "ClinicProfile";
+}
+
+@section Styles {
+  <link rel="stylesheet" href="~/css/settings-users.css">
+  <style>
+    .profile-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 6px rgba(13, 61, 40, 0.04);
+    }
+    .profile-card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-green);
+      margin: 0 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .profile-card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0 0 20px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-green);
+    }
+    .form-control {
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-green);
+      background: #ffffff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-green);
+      box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.15);
+    }
+    .alert-banner {
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+    .alert-success {
+      background: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      color: #2e7d32;
+    }
+    .alert-danger {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: var(--danger-text);
+    }
+    .facility-overview {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: linear-gradient(135deg, #f0faf6 0%, #e6f4ee 100%);
+      border: 1px solid #c8e6c9;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .facility-emblem {
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      background: var(--primary-green);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .facility-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-green);
+      margin: 0 0 4px;
+    }
+    .facility-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+  </style>
+}
+
+<main class="settings-layout">
+  <partial name="_SettingsSidebar" />
+
+  <section class="settings-main" aria-label="Clinic Profile settings">
+    <header class="settings-header">
+      <div>
+        <h1 class="settings-title">Clinic Profile</h1>
+        <p class="settings-subtitle">Manage facility identity, official accreditations, and contact details.</p>
+      </div>
+    </header>
+
+    @if (ViewBag.SuccessMessage != null)
+    {
+      <div class="alert-banner alert-success" role="alert">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>@ViewBag.SuccessMessage</span>
+      </div>
+    }
+
+    @if (ViewBag.ErrorMessage != null)
+    {
+      <div class="alert-banner alert-danger" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>@ViewBag.ErrorMessage</span>
+      </div>
+    }
+
+    <div class="facility-overview">
+      <div class="facility-emblem">
+        <i class="bi bi-hospital"></i>
+      </div>
+      <div>
+        <h2 class="facility-title">@Model.ClinicName</h2>
+        <p class="facility-subtitle">@Model.Specialization · Marikina City, Philippines</p>
+      </div>
+    </div>
+
+    <form asp-controller="Settings" asp-action="ClinicProfile" method="post">
+      @Html.AntiForgeryToken()
+      <input type="hidden" asp-for="Id" />
+
+      <!-- Facility Information -->
+      <div class="profile-card">
+        <h3 class="profile-card-title">
+          <i class="bi bi-building-check" style="color: var(--primary-green);"></i>
+          Facility Identification
+        </h3>
+        <p class="profile-card-desc">Official clinic registry information displayed on medical summaries and reports.</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label asp-for="ClinicName" class="form-label">Facility Name</label>
+            <input asp-for="ClinicName" class="form-control" required />
+          </div>
+
+          <div class="form-group">
+            <label asp-for="Specialization" class="form-label">Healthcare Category</label>
+            <input asp-for="Specialization" class="form-control" required />
+          </div>
+
+          <div class="form-group">
+            <label asp-for="MedicalDirector" class="form-label">Medical Director / Head Physician</label>
+            <input asp-for="MedicalDirector" class="form-control" required />
+          </div>
+
+          <div class="form-group">
+            <label asp-for="OperatingHours" class="form-label">Regular Clinic Hours</label>
+            <input asp-for="OperatingHours" class="form-control" required />
+          </div>
+        </div>
+      </div>
+
+      <!-- Regulatory & Accreditation -->
+      <div class="profile-card">
+        <h3 class="profile-card-title">
+          <i class="bi bi-award-fill" style="color: #ba7517;"></i>
+          Licenses & Healthcare Accreditations
+        </h3>
+        <p class="profile-card-desc">Official registration numbers for Department of Health (DOH) and PhilHealth compliance.</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label asp-for="DohLicense" class="form-label">DOH Facility License No.</label>
+            <input asp-for="DohLicense" class="form-control" placeholder="e.g. DOH-NCR-CL-2026-08492" />
+          </div>
+
+          <div class="form-group">
+            <label asp-for="PhilHealthAccreditation" class="form-label">PhilHealth Accreditation No.</label>
+            <input asp-for="PhilHealthAccreditation" class="form-control" placeholder="e.g. PH-ACCRED-9482710" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact & Physical Location -->
+      <div class="profile-card">
+        <h3 class="profile-card-title">
+          <i class="bi bi-geo-alt-fill" style="color: #2e63b7;"></i>
+          Contact & Location Details
+        </h3>
+        <p class="profile-card-desc">Patient emergency lines and clinic dispatch address.</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label asp-for="ContactPhone" class="form-label">Official Hotline / Mobile</label>
+            <input asp-for="ContactPhone" class="form-control" required />
+          </div>
+
+          <div class="form-group">
+            <label asp-for="EmergencyHotline" class="form-label">24/7 Emergency Line</label>
+            <input asp-for="EmergencyHotline" class="form-control" required />
+          </div>
+
+          <div class="form-group">
+            <label asp-for="ContactEmail" class="form-label">Official Email</label>
+            <input asp-for="ContactEmail" type="email" class="form-control" required />
+          </div>
+
+          <div class="form-group full-width">
+            <label asp-for="Address" class="form-label">Clinic Address</label>
+            <input asp-for="Address" class="form-control" required />
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
+        <button type="submit" class="btn-primary" style="padding: 12px 28px; font-size: 14px;">
+          <i class="bi bi-floppy-fill" style="margin-right: 6px;"></i>
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </section>
+</main>

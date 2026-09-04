@@ -1,0 +1,46 @@
+@{
+    var activeTab = (ViewData["ActiveSettingsTab"] as string) ?? "Users";
+}
+
+<aside class="settings-sidebar" aria-label="Settings sidebar">
+  <div class="sidebar-section">
+    <a asp-controller="Settings" asp-action="Users" class="sidebar-item @(activeTab == "Users" ? "sidebar-item--active" : "")" style="text-decoration: none;">
+      <span class="sidebar-item-left">
+        <span class="sidebar-icon" aria-hidden="true"><i class="bi bi-people-fill"></i></span>
+        <span class="sidebar-text">User Management</span>
+      </span>
+    </a>
+
+    <a asp-controller="Settings" asp-action="ClinicProfile" class="sidebar-item @(activeTab == "ClinicProfile" ? "sidebar-item--active" : "")" style="text-decoration: none;">
+      <span class="sidebar-item-left">
+        <span class="sidebar-icon" aria-hidden="true"><i class="bi bi-building"></i></span>
+        <span class="sidebar-text">Clinic Profile</span>
+      </span>
+    </a>
+
+    <a asp-controller="Settings" asp-action="Notifications" class="sidebar-item @(activeTab == "Notifications" ? "sidebar-item--active" : "")" style="text-decoration: none;">
+      <span class="sidebar-item-left">
+        <span class="sidebar-icon" aria-hidden="true"><i class="bi bi-bell"></i></span>
+        <span class="sidebar-text">Notifications</span>
+      </span>
+    </a>
+  </div>
+
+  <div class="sidebar-divider" aria-hidden="true"></div>
+
+  <div class="sidebar-section">
+    <a asp-controller="Settings" asp-action="ActivityLogs" class="sidebar-item @(activeTab == "ActivityLogs" ? "sidebar-item--active" : "")" style="text-decoration: none;">
+      <span class="sidebar-item-left">
+        <span class="sidebar-icon" aria-hidden="true"><i class="bi bi-clock-history"></i></span>
+        <span class="sidebar-text">Activity Logs</span>
+      </span>
+    </a>
+
+    <a asp-controller="Settings" asp-action="About" class="sidebar-item @(activeTab == "About" ? "sidebar-item--active" : "")" style="text-decoration: none;">
+      <span class="sidebar-item-left">
+        <span class="sidebar-icon" aria-hidden="true"><i class="bi bi-info-circle-fill"></i></span>
+        <span class="sidebar-text">About System</span>
+      </span>
+    </a>
+  </div>
+</aside>

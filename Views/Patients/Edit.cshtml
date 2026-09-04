@@ -1,0 +1,106 @@
+@model MaterniTrack.Models.Patient
+@{
+    ViewData["Title"] = "Edit Patient";
+    ViewData["BodyClass"] = "patients-page";
+}
+
+@section Styles {
+  <link rel="stylesheet" href="~/css/patients.css">
+}
+
+<main class="form-page">
+    <div class="form-header">
+      <a asp-action="Index" class="back-btn" style="text-decoration: none;">
+        <i class="bi bi-arrow-left"></i> Back to Patients
+      </a>
+      <h1 class="form-title">Edit Patient Record</h1>
+      <p class="form-subtitle">Update clinical details for @Model.FullName</p>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Count > 0))
+    {
+      <div class="form-errors" role="alert">
+        @foreach (var state in ViewData.ModelState.Values)
+        {
+          foreach (var error in state.Errors)
+          {
+            <p style="margin: 2px 0;">• @error.ErrorMessage</p>
+          }
+        }
+      </div>
+    }
+
+    <form asp-action="Edit" method="post" class="form-card" id="editPatientForm">
+      @Html.AntiForgeryToken()
+      <input type="hidden" asp-for="Id" />
+      <input type="hidden" asp-for="DateAdded" />
+
+      <div class="form-row">
+        <div class="form-field">
+          <label class="field-label" asp-for="FullName">Full Name *</label>
+          <input asp-for="FullName" class="field-input" type="text" required>
+          <span asp-validation-for="FullName" class="text-danger" style="font-size: 12px; color: #dc2626;"></span>
+        </div>
+        <div class="form-field">
+          <label class="field-label" asp-for="Age">Age *</label>
+          <input asp-for="Age" class="field-input" type="number" min="1" max="120" required>
+          <span asp-validation-for="Age" class="text-danger" style="font-size: 12px; color: #dc2626;"></span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label class="field-label" asp-for="Contact">Contact Number *</label>
+          <input asp-for="Contact" class="field-input" type="tel" required>
+          <span asp-validation-for="Contact" class="text-danger" style="font-size: 12px; color: #dc2626;"></span>
+        </div>
+        <div class="form-field">
+          <label class="field-label" asp-for="Email">Email Address</label>
+          <input asp-for="Email" class="field-input" type="email">
+          <span asp-validation-for="Email" class="text-danger" style="font-size: 12px; color: #dc2626;"></span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field full-width">
+          <label class="field-label" asp-for="Address">Address</label>
+          <input asp-for="Address" class="field-input" type="text">
+          <span asp-validation-for="Address" class="text-danger" style="font-size: 12px; color: #dc2626;"></span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field full-width">
+          <label class="field-label" asp-for="MedicalHistory">Medical History</label>
+          <textarea asp-for="MedicalHistory" class="field-textarea"></textarea>
+          <span asp-validation-for="MedicalHistory" class="text-danger" style="font-size: 12px; color: #dc2626;"></span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field full-width">
+          <label class="field-label" asp-for="Allergies">Allergies</label>
+          <textarea asp-for="Allergies" class="field-textarea"></textarea>
+          <span asp-validation-for="Allergies" class="text-danger" style="font-size: 12px; color: #dc2626;"></span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label class="field-label" asp-for="Status">Status *</label>
+          <select asp-for="Status" class="field-input" required>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <a asp-action="Index" class="btn-cancel" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">Cancel</a>
+        <button type="submit" class="btn-submit">
+          <i class="bi bi-save" aria-hidden="true"></i>
+          Update Patient
+        </button>
+      </div>
+    </form>
+</main>

@@ -1,0 +1,216 @@
+@model MaterniTrack.Models.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["BodyClass"] = "dashboard-page";
+    var isDoctor = User.IsInRole("Doctor");
+}
+
+<main class="dashboard-content">
+    @if (Model.LowStockAlertItems.Any())
+    {
+      <section
+        id="lowStockAlert"
+        class="low-stock-alert"
+        role="alert"
+        aria-live="assertive"
+        aria-label="Critical low stock alert"
+      >
+        <div class="low-stock-icon" aria-hidden="true"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <div>
+          <p class="low-stock-title">Critical inventory alert</p>
+          <p class="low-stock-message">
+            Please restock immediately: @string.Join(", ", Model.LowStockAlertItems.Select(i => i.Name)).
+          </p>
+        </div>
+      </section>
+    }
+
+    <section class="welcome-banner" aria-label="Welcome summary">
+      <div>
+        <h1 class="welcome-title">Good day, @Model.UserName!</h1>
+        <p class="welcome-subtitle">Here's what's happening at the clinic today.</p>
+      </div>
+
+      <div class="welcome-meta">
+        <p class="welcome-date">@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
+        <p class="welcome-location">District 2, Marikina City</p>
+      </div>
+    </section>
+
+    @if (isDoctor)
+    {
+      <section class="role-banner role-banner-admin" aria-label="Doctor role banner">
+        <div class="role-banner-icon" aria-hidden="true">
+          <i class="bi bi-check2-circle"></i>
+        </div>
+        <div>
+          <p class="role-banner-text">
+            You are logged in as <strong>Doctor / Administrator</strong>. You have full access to all clinical records, reports, and User Management settings.
+          </p>
+        </div>
+      </section>
+    }
+    else
+    {
+      <section class="role-banner role-banner-staff" aria-label="Staff role banner">
+        <div class="role-banner-icon" aria-hidden="true">
+          <i class="bi bi-person-fill"></i>
+        </div>
+        <div>
+          <p class="role-banner-text">
+            You are logged in as <strong>Staff</strong>. You can schedule appointments, manage inventory, and record patient visits.
+          </p>
+        </div>
+      </section>
+    }
+
+    <section class="quick-actions" aria-label="Quick actions">
+      <a asp-controller="Appointments" asp-action="Create" class="quick-action-btn action-appointment" style="text-decoration: none;">
+        <span class="quick-action-icon" aria-hidden="true"><i class="bi bi-calendar-plus"></i></span>
+        <span class="quick-action-label">Add Appointment</span>
+        <span class="quick-action-description">Schedule a patient visit in one step.</span>
+      </a>
+
+      <a asp-controller="Patients" asp-action="Index" class="quick-action-btn action-patients" style="text-decoration: none;">
+        <span class="quick-action-icon" aria-hidden="true"><i class="bi bi-people-fill"></i></span>
+        <span class="quick-action-label">View Patients</span>
+        <span class="quick-action-description">Open patient records and check updates.</span>
+      </a>
+
+      <a asp-controller="Inventory" asp-action="Index" class="quick-action-btn action-inventory" style="text-decoration: none;">
+        <span class="quick-action-icon" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
+        <span class="quick-action-label">Update Inventory</span>
+        <span class="quick-action-description">Add stock and review low item levels.</span>
+      </a>
+
+      <a asp-controller="Reports" asp-action="Index" class="quick-action-btn action-report" style="text-decoration: none;">
+        <span class="quick-action-icon" aria-hidden="true"><i class="bi bi-bar-chart-line-fill"></i></span>
+        <span class="quick-action-label">Generate Report</span>
+        <span class="quick-action-description">Create daily and monthly clinic summaries.</span>
+      </a>
+
+      @if (isDoctor)
+      {
+        <a asp-controller="Settings" asp-action="Users" class="quick-action-btn action-users" style="text-decoration: none;">
+          <span class="quick-action-icon" aria-hidden="true"><i class="bi bi-person-gear"></i></span>
+          <span class="quick-action-label">Manage Users</span>
+          <span class="quick-action-description">Control staff accounts and permissions.</span>
+        </a>
+      }
+    </section>
+
+    <section class="summary-stats" aria-label="Dashboard summary statistics">
+      <article class="stat-card stat-appointments">
+        <span class="stat-icon" aria-hidden="true"><i class="bi bi-calendar-check-fill"></i></span>
+        <p class="stat-number" id="dashboardAppointmentCount">@Model.TodayAppointmentsCount</p>
+        <p class="stat-label">Appointments Today</p>
+      </article>
+
+      <article class="stat-card stat-patients">
+        <span class="stat-icon" aria-hidden="true"><i class="bi bi-people-fill"></i></span>
+        <p class="stat-number" id="dashboardPatientCount">@Model.TotalPatientsCount</p>
+        <p class="stat-label">Total Patients</p>
+      </article>
+
+      <article class="stat-card stat-supplies">
+        <span class="stat-icon" aria-hidden="true"><i class="bi bi-clipboard2-pulse-fill"></i></span>
+        <p class="stat-number" id="dashboardSupplyCount">@Model.TotalSuppliesCount</p>
+        <p class="stat-label">Supply Items Tracked</p>
+      </article>
+    </section>
+
+    <div class="dashboard-two-column">
+      <section class="appointments-panel" aria-label="Today's appointments">
+        <div class="panel-header">
+          <h2 class="panel-title">Today's Appointments</h2>
+        </div>
+
+        <div class="appointment-list" id="dashboardAppointmentList">
+          @if (Model.TodayAppointments.Count == 0)
+          {
+            <p style="padding: 24px; text-align: center; color: #5a8a72; font-size: 13px;">
+              No appointments scheduled for today. <a asp-controller="Appointments" asp-action="Create" style="color: #1D9E75; font-weight: 600;">Schedule one now</a>
+            </p>
+          }
+          else
+          {
+            @foreach (var appt in Model.TodayAppointments)
+            {
+              var initials = "PT";
+              if (!string.IsNullOrWhiteSpace(appt.PatientName))
+              {
+                var parts = appt.PatientName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                initials = parts.Length > 1 
+                  ? $"{parts[0][0]}{parts[^1][0]}".ToUpper() 
+                  : appt.PatientName.Length >= 2 ? appt.PatientName[..2].ToUpper() : appt.PatientName.ToUpper();
+              }
+
+              var typeDisplay = appt.AppointmentType switch
+              {
+                "prenatal" => "Prenatal Checkup",
+                "postnatal" => "Postnatal Care",
+                "consultation" => "Consultation",
+                "followup" => "Follow-up Visit",
+                _ => "General Appointment"
+              };
+
+              <article class="appointment-row">
+                <p class="time-box">@appt.AppointmentTime</p>
+                <div class="patient-info">
+                  <span class="patient-avatar">@initials</span>
+                  <div>
+                    <p class="patient-name">@appt.PatientName</p>
+                    <p class="appointment-type">@typeDisplay</p>
+                  </div>
+                </div>
+                <span class="status-pill status-@appt.Status">@(char.ToUpper(appt.Status[0]) + appt.Status[1..])</span>
+              </article>
+            }
+          }
+        </div>
+      </section>
+
+      <section class="inventory-panel" aria-label="Medical supply inventory">
+        <div class="panel-header">
+          <h2 class="panel-title">Medical Supply Inventory</h2>
+        </div>
+
+        <div class="inventory-list" id="dashboardInventoryList">
+          @if (Model.DisplayInventory.Count == 0)
+          {
+            <p style="padding: 24px; text-align: center; color: #5a8a72; font-size: 13px;">
+              No inventory items. <a asp-controller="Inventory" asp-action="Create" style="color: #1D9E75; font-weight: 600;">Add items</a>
+            </p>
+          }
+          else
+          {
+            @foreach (var item in Model.DisplayInventory)
+            {
+              var icon = item.Category switch
+              {
+                "Medicine" => "bi-capsule-pill",
+                "Equipment" => "bi-tools",
+                _ => "bi-bandaid-fill"
+              };
+
+              <article class="inventory-row">
+                <div class="inventory-head">
+                  <div class="inventory-item-info">
+                    <span class="inventory-icon" aria-hidden="true"><i class="bi @icon"></i></span>
+                    <p class="inventory-name">@item.Name</p>
+                  </div>
+                  <p class="inventory-qty">@item.Quantity @item.Unit</p>
+                </div>
+                <div class="inventory-foot">
+                  <div class="inventory-track" aria-hidden="true">
+                    <span class="inventory-fill @item.BarClass"></span>
+                  </div>
+                  <span class="inventory-status @item.StatusClass">@item.CalculateStatus()</span>
+                </div>
+              </article>
+            }
+          }
+        </div>
+      </section>
+    </div>
+</main>

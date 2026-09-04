@@ -1,0 +1,155 @@
+@model MaterniTrack.Models.Appointment
+@{
+    ViewData["Title"] = "Edit Appointment";
+    ViewData["BodyClass"] = "appointments-add-page";
+}
+
+@section Styles {
+  <link rel="stylesheet" href="~/css/appointments-add.css">
+}
+
+<main class="form-content">
+    <section class="form-header" aria-label="Page header">
+      <div>
+        <a asp-controller="Appointments" asp-action="Index" class="back-btn" style="text-decoration:none;">
+          <i class="bi bi-arrow-left"></i> Back to Appointments
+        </a>
+        <h1 class="form-title">Edit Appointment</h1>
+        <p class="form-subtitle">Update appointment details for @Model.PatientName</p>
+      </div>
+    </section>
+
+    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Count > 0))
+    {
+      <div style="background:#fee2e2;border-left:4px solid #dc2626;color:#7f1d1d;padding:12px 16px;border-radius:6px;margin-bottom:20px;font-size:14px;">
+        @foreach (var state in ViewData.ModelState.Values)
+        {
+          foreach (var error in state.Errors)
+          {
+            <p style="margin:2px 0;">• @error.ErrorMessage</p>
+          }
+        }
+      </div>
+    }
+
+    <form asp-action="Edit" method="post" class="appointment-form">
+      @Html.AntiForgeryToken()
+      <input type="hidden" asp-for="Id" />
+      <input type="hidden" asp-for="DateCreated" />
+
+      <div class="form-columns">
+        <!-- LEFT COLUMN -->
+        <div class="form-column">
+          <div class="form-group">
+            <label class="form-label" asp-for="PatientName">Patient Full Name <span class="required">*</span></label>
+            <div class="form-input-wrapper">
+              <i class="form-icon bi bi-person"></i>
+              <input asp-for="PatientName" class="form-input" type="text" required>
+            </div>
+            <span asp-validation-for="PatientName" class="form-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" asp-for="ContactNumber">Contact Number <span class="required">*</span></label>
+            <div class="form-input-wrapper">
+              <i class="form-icon bi bi-telephone"></i>
+              <input asp-for="ContactNumber" class="form-input" type="tel" required>
+            </div>
+            <span class="form-hint">Format: 09XX XXX XXXX</span>
+            <span asp-validation-for="ContactNumber" class="form-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" asp-for="AppointmentDate">Appointment Date <span class="required">*</span></label>
+            <div class="form-input-wrapper">
+              <i class="form-icon bi bi-calendar"></i>
+              <input asp-for="AppointmentDate" class="form-input" type="date" required>
+            </div>
+            <span asp-validation-for="AppointmentDate" class="form-error"></span>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="form-column">
+          <div class="form-group">
+            <label class="form-label" asp-for="AppointmentTime">Appointment Time <span class="required">*</span></label>
+            <div class="form-input-wrapper">
+              <i class="form-icon bi bi-clock"></i>
+              <input asp-for="AppointmentTime" class="form-input" type="time" required>
+            </div>
+            <span class="form-hint">Clinic hours: 7:00 AM to 6:00 PM</span>
+            <span asp-validation-for="AppointmentTime" class="form-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" asp-for="AppointmentType">Type of Appointment <span class="required">*</span></label>
+            <div class="form-input-wrapper">
+              <i class="form-icon bi bi-stethoscope"></i>
+              <select asp-for="AppointmentType" class="form-input form-select" required>
+                <option value="prenatal">Prenatal Checkup</option>
+                <option value="postnatal">Postnatal Care</option>
+                <option value="consultation">Consultation</option>
+                <option value="followup">Follow-up Visit</option>
+                <option value="others">Others</option>
+              </select>
+            </div>
+            <span asp-validation-for="AppointmentType" class="form-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" asp-for="AssignedStaff">Assigned Doctor / Staff <span class="required">*</span></label>
+            <div class="form-input-wrapper">
+              <i class="form-icon bi bi-person-badge"></i>
+              <select asp-for="AssignedStaff" class="form-input form-select" required>
+                <option value="dr-real-mendoza">Dr. Real-Mendoza</option>
+                <option value="juan-santos">Juan Santos</option>
+                <option value="maria-reyes">Maria Reyes</option>
+                <option value="rose-garcia">Rose Garcia</option>
+              </select>
+            </div>
+            <span asp-validation-for="AssignedStaff" class="form-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" asp-for="Status">Status</label>
+            <div class="form-input-wrapper">
+              <i class="form-icon bi bi-info-circle"></i>
+              <select asp-for="Status" class="form-input form-select">
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="done">Done</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes (full width) -->
+      <div class="form-group form-group-fullwidth">
+        <label class="form-label" asp-for="Notes">Notes or Remarks</label>
+        <textarea asp-for="Notes" class="form-textarea" id="notesInput" maxlength="300"></textarea>
+        <div class="form-textarea-footer">
+          <span class="character-count"><span id="charCount">0</span> / 300</span>
+        </div>
+      </div>
+
+      <div class="form-buttons">
+        <a asp-controller="Appointments" asp-action="Index" class="btn btn-cancel" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Cancel</a>
+        <button type="submit" class="btn btn-primary">Update Appointment</button>
+      </div>
+    </form>
+</main>
+
+@section Scripts {
+<script>
+  const notesInput = document.getElementById('notesInput');
+  const charCount = document.getElementById('charCount');
+  if (notesInput) {
+    charCount.textContent = notesInput.value.length;
+    notesInput.addEventListener('input', () => {
+      charCount.textContent = notesInput.value.length;
+    });
+  }
+</script>
+}

@@ -1,0 +1,280 @@
+@{
+    ViewData["Title"] = "Appointments";
+    ViewData["BodyClass"] = "appointments-page";
+
+    int calYear = (int)ViewBag.CalYear;
+    int calMonth = (int)ViewBag.CalMonth;
+    DateOnly pickedDate = (DateOnly)ViewBag.SelectedDate;
+    string currentFilter = (string)ViewBag.CurrentFilter;
+    var dayAppointments = (List<MaterniTrack.Models.Appointment>)ViewBag.DayAppointments;
+    var daysWithAppts = (HashSet<int>)ViewBag.DaysWithAppointments;
+
+    var today = DateOnly.FromDateTime(DateTime.Today);
+    var monthNames = new[] { "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December" };
+    var dayNames = new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+
+    int firstDayOfWeek = (int)new DateTime(calYear, calMonth, 1).DayOfWeek;
+    int daysInMonth = DateTime.DaysInMonth(calYear, calMonth);
+
+    // Formatted selected date label
+    string pickedLabel = pickedDate.ToString("dddd, MMMM d, yyyy");
+
+    // Helper: pretty display for appointment type
+    string FormatType(string t) => t switch {
+        "prenatal" => "Prenatal Checkup",
+        "postnatal" => "Postnatal Care",
+        "consultation" => "Consultation",
+        "followup" => "Follow-up Visit",
+        _ => "Others"
+    };
+    // Helper: pretty display for staff name
+    string FormatStaff(string s) => s switch {
+        "dr-real-mendoza" => "Dr. Real-Mendoza",
+        "juan-santos" => "Juan Santos",
+        "maria-reyes" => "Maria Reyes",
+        "rose-garcia" => "Rose Garcia",
+        _ => s
+    };
+    // Nav URLs for prev/next month
+    int prevMonth = calMonth - 1, prevYear = calYear;
+    if (prevMonth < 1) { prevMonth = 12; prevYear--; }
+    int nextMonth = calMonth + 1, nextYear = calYear;
+    if (nextMonth > 12) { nextMonth = 1; nextYear++; }
+
+    string MakeUrl(int? y = null, int? m = null, string? d = null, string? f = null) =>
+        $"/Appointments?year={(y ?? calYear)}&month={(m ?? calMonth)}&selectedDate={(d ?? pickedDate.ToString("yyyy-MM-dd"))}&filter={(f ?? currentFilter)}";
+}
+
+@section Styles {
+  <link rel="stylesheet" href="~/css/appointments.css">
+}
+
+<main class="appointments-content">
+    @if (ViewBag.SuccessMessage != null)
+    {
+      <div style="background:#d1fae5;border-left:4px solid #10b981;color:#065f46;padding:12px 16px;border-radius:6px;margin-bottom:16px;font-size:14px;font-weight:500;">
+        <i class="bi bi-check-circle-fill"></i> @ViewBag.SuccessMessage
+      </div>
+    }
+
+    <!-- Page Header -->
+    <section class="page-header" aria-label="Page header">
+      <div>
+        <h1 class="page-title">
+          <span class="page-title-icon"><i class="bi bi-calendar2"></i></span>
+          Appointments
+        </h1>
+        <p class="page-subtitle">Manage and schedule patient visits for Real-Mendoza Maternity Clinic.</p>
+      </div>
+      <a asp-action="Create" class="add-appointment-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
+        <i class="bi bi-plus-lg"></i> Add Appointment
+      </a>
+    </section>
+
+    <div class="appointments-layout">
+      <!-- LEFT: Calendar -->
+      <section class="calendar-section" aria-label="Calendar view">
+        <div class="calendar-header">
+          <a href="@MakeUrl(y: prevYear, m: prevMonth)" class="calendar-nav-btn" aria-label="Previous month">
+            <i class="bi bi-chevron-left"></i>
+          </a>
+          <h2 class="calendar-month-year">@monthNames[calMonth - 1] @calYear</h2>
+          <a href="@MakeUrl(y: nextYear, m: nextMonth)" class="calendar-nav-btn" aria-label="Next month">
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </div>
+
+        <a href="@MakeUrl(y: today.Year, m: today.Month, d: today.ToString("yyyy-MM-dd"))" class="calendar-today-btn">Today</a>
+
+        <div class="calendar-grid">
+          @foreach (var dn in dayNames)
+          {
+            <div class="calendar-day-header">@dn</div>
+          }
+
+          @* Empty cells before first day *@
+          @for (int i = 0; i < firstDayOfWeek; i++)
+          {
+            <div class="calendar-day empty"></div>
+          }
+
+          @* Day cells *@
+          @for (int d = 1; d <= daysInMonth; d++)
+          {
+            var thisDate = new DateOnly(calYear, calMonth, d);
+            var isToday = thisDate == today;
+            var isSelected = thisDate == pickedDate;
+            var hasDot = daysWithAppts.Contains(d);
+
+            var cls = "calendar-day";
+            if (isToday) cls += " is-today";
+            if (isSelected) cls += " is-selected";
+
+            <a href="@MakeUrl(d: thisDate.ToString("yyyy-MM-dd"))"
+               class="@cls"
+               style="text-decoration:none;display:flex;flex-direction:column;align-items:center;">
+              @d
+              @if (hasDot) { <span class="calendar-dot"></span> }
+            </a>
+          }
+
+          @* Trailing empty cells to complete the grid *@
+          @{
+            int totalCells = firstDayOfWeek + daysInMonth;
+            int trailing = (7 - totalCells % 7) % 7;
+          }
+          @for (int i = 0; i < trailing; i++)
+          {
+            <div class="calendar-day empty"></div>
+          }
+        </div>
+      </section>
+
+      <!-- RIGHT: Appointments List -->
+      <section class="appointments-right-section" aria-label="Day appointments">
+        <div class="appointments-list-container">
+          <div class="appointments-list-header">
+            <div>
+              <p class="appointments-list-date">@pickedLabel</p>
+              <p class="appointments-list-count">
+                @dayAppointments.Count appointment@(dayAppointments.Count == 1 ? "" : "s")
+              </p>
+            </div>
+
+            <!-- Filter dropdown -->
+            <div class="filter-dropdown">
+              <button type="button" class="filter-btn" id="filterBtn">
+                Filter <i class="bi bi-chevron-down"></i>
+              </button>
+              <div class="filter-menu is-hidden" id="filterMenu">
+                @foreach (var f in new[] { "all", "confirmed", "pending", "done", "cancelled" })
+                {
+                  var isActive = currentFilter == f ? "active" : "";
+                  <a href="@MakeUrl(f: f)" class="filter-option @isActive">
+                    @(f == "all" ? "All" : char.ToUpper(f[0]) + f[1..])
+                  </a>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Appointment Cards -->
+          <div class="appointment-cards-container">
+            @if (!dayAppointments.Any())
+            {
+              <div class="appointment-empty-state">
+                <div class="empty-state-icon" aria-hidden="true"><i class="bi bi-calendar-x"></i></div>
+                <p class="empty-state-text">No appointments on this day.</p>
+              </div>
+            }
+            else
+            {
+              @foreach (var apt in dayAppointments)
+              {
+                <div class="appointment-card">
+                  <div class="appointment-card-left">
+                    <p class="apt-time">@TimeSpan.Parse(apt.AppointmentTime).ToString(@"hh\:mm") <span class="apt-ampm">@(int.Parse(apt.AppointmentTime[..2]) < 12 ? "AM" : "PM")</span></p>
+                    <span class="apt-status apt-status-@apt.Status">
+                      @(char.ToUpper(apt.Status[0]) + apt.Status[1..])
+                    </span>
+                  </div>
+                  <div class="appointment-card-right">
+                    <p class="apt-patient"><i class="bi bi-person-fill"></i> @apt.PatientName</p>
+                    <p class="apt-type">@FormatType(apt.AppointmentType)</p>
+                    <p class="apt-staff"><i class="bi bi-person-badge"></i> @FormatStaff(apt.AssignedStaff)</p>
+                    @if (!string.IsNullOrWhiteSpace(apt.Notes))
+                    {
+                      <p class="apt-notes"><i class="bi bi-chat-left-text"></i> @apt.Notes</p>
+                    }
+                    <div class="apt-actions">
+                      <a asp-action="Edit" asp-route-id="@apt.Id" class="apt-action-btn" style="text-decoration:none;">
+                        <i class="bi bi-pencil-fill"></i> Edit
+                      </a>
+                      <!-- Quick status buttons -->
+                      @if (apt.Status != "confirmed" && apt.Status != "done")
+                      {
+                        <form asp-action="UpdateStatus" method="post" style="display:inline;">
+                          @Html.AntiForgeryToken()
+                          <input type="hidden" name="id" value="@apt.Id" />
+                          <input type="hidden" name="status" value="confirmed" />
+                          <input type="hidden" name="returnDate" value="@pickedDate.ToString("yyyy-MM-dd")" />
+                          <button type="submit" class="apt-action-btn apt-action-confirm">
+                            <i class="bi bi-check-lg"></i> Confirm
+                          </button>
+                        </form>
+                      }
+                      @if (apt.Status != "done")
+                      {
+                        <form asp-action="UpdateStatus" method="post" style="display:inline;">
+                          @Html.AntiForgeryToken()
+                          <input type="hidden" name="id" value="@apt.Id" />
+                          <input type="hidden" name="status" value="done" />
+                          <input type="hidden" name="returnDate" value="@pickedDate.ToString("yyyy-MM-dd")" />
+                          <button type="submit" class="apt-action-btn apt-action-done">
+                            <i class="bi bi-check-circle"></i> Done
+                          </button>
+                        </form>
+                      }
+                      <button type="button" class="apt-action-btn apt-action-delete"
+                              onclick="openDeleteModal(@apt.Id, '@apt.PatientName')">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </section>
+    </div>
+</main>
+
+<!-- Delete Modal -->
+<div id="deleteApptModal" class="modal-overlay is-hidden" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 class="modal-title" style="color:#b91c1c;"><i class="bi bi-exclamation-triangle"></i> Delete Appointment?</h2>
+      <p class="modal-subtitle">Patient: <strong id="deleteApptName"></strong></p>
+    </div>
+    <div class="modal-body" style="padding:12px 24px;">
+      <p style="font-size:14px;color:#6b7280;">This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <form id="deleteApptForm" asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" id="deleteApptId" />
+        <button type="button" class="btn-modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+        <button type="submit" class="btn-modal-delete">Yes, Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<script>
+  // Filter dropdown toggle
+  const filterBtn = document.getElementById('filterBtn');
+  const filterMenu = document.getElementById('filterMenu');
+  filterBtn?.addEventListener('click', () => filterMenu.classList.toggle('is-hidden'));
+  document.addEventListener('click', e => {
+    if (!filterBtn?.contains(e.target) && !filterMenu?.contains(e.target)) {
+      filterMenu?.classList.add('is-hidden');
+    }
+  });
+
+  // Delete modal
+  function openDeleteModal(id, name) {
+    document.getElementById('deleteApptId').value = id;
+    document.getElementById('deleteApptName').textContent = name;
+    document.getElementById('deleteApptModal').classList.remove('is-hidden');
+  }
+  function closeDeleteModal() {
+    document.getElementById('deleteApptModal').classList.add('is-hidden');
+  }
+  document.getElementById('deleteApptModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+</script>
+}

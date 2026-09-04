@@ -1,0 +1,151 @@
+@model MaterniTrack.Models.ViewModels.ReportsViewModel
+@{
+    ViewData["Title"] = "Reports";
+    ViewData["BodyClass"] = "reports-page";
+
+    string FormatTime(string timeStr)
+    {
+        if (TimeSpan.TryParse(timeStr, out var ts))
+        {
+            return DateTime.Today.Add(ts).ToString("hh:mm tt");
+        }
+        return timeStr;
+    }
+
+    string FormatStaff(string staff)
+    {
+        return staff switch
+        {
+            "dr-real-mendoza" => "Dr. Leyo Mendoza",
+            "juan-santos"     => "Juan Santos",
+            "maria-reyes"     => "Maria Reyes",
+            "rose-garcia"     => "Rose Garcia",
+            _                 => staff
+        };
+    }
+}
+
+@section Styles {
+  <link rel="stylesheet" href="~/css/reports.css">
+}
+
+<main class="reports-container">
+    <a asp-controller="Home" asp-action="Index" class="back-btn">
+      <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <div class="reports-header">
+      <div>
+        <h1>Clinic Reports</h1>
+        <p style="color: #666; margin-top: 5px;">Daily and monthly clinic summaries</p>
+      </div>
+      <div class="reports-actions">
+        <button type="button" class="btn-print" onclick="window.print()">
+          <i class="bi bi-printer"></i> Print Report
+        </button>
+        <a asp-action="ExportCsv" class="btn-export">
+          <i class="bi bi-download"></i> Export CSV
+        </a>
+      </div>
+    </div>
+
+    <div class="reports-grid">
+      <!-- Daily Report -->
+      <div class="report-card">
+        <div class="report-title">
+          <i class="bi bi-calendar-day" style="color: #2d8f6f;"></i>
+          Today's Summary
+        </div>
+        <div>
+          <div class="report-stat">
+            <span class="stat-label">Appointments Scheduled</span>
+            <span class="stat-value">@Model.DailyAppointmentsCount</span>
+          </div>
+          <div class="report-stat">
+            <span class="stat-label">Patients Added Today</span>
+            <span class="stat-value">@Model.DailyPatientsCount</span>
+          </div>
+          <div class="report-stat">
+            <span class="stat-label">Report Generated</span>
+            <span class="stat-value" style="font-size: 14px;">@Model.TodayDateFormatted</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Report -->
+      <div class="report-card">
+        <div class="report-title">
+          <i class="bi bi-calendar3" style="color: #2d8f6f;"></i>
+          This Month's Summary
+        </div>
+        <div>
+          <div class="report-stat">
+            <span class="stat-label">Total Appointments</span>
+            <span class="stat-value">@Model.MonthlyAppointmentsCount</span>
+          </div>
+          <div class="report-stat">
+            <span class="stat-label">New Patients</span>
+            <span class="stat-value">@Model.MonthlyPatientsCount</span>
+          </div>
+          <div class="report-stat">
+            <span class="stat-label">Active Patients</span>
+            <span class="stat-value">@Model.ActivePatientsCount</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's Appointments Details -->
+    <div class="report-details">
+      <div class="details-title">
+        <i class="bi bi-calendar-check"></i> Today's Appointments
+      </div>
+      <div>
+        @if (!Model.TodayAppointments.Any())
+        {
+          <div class="empty-message">No appointments scheduled for today</div>
+        }
+        else
+        {
+          @foreach (var a in Model.TodayAppointments)
+          {
+            <div class="detail-item">
+              <div class="detail-item-title">@FormatTime(a.AppointmentTime) - @a.PatientName</div>
+              <div class="detail-item-text">
+                <strong>Type:</strong> @char.ToUpper(a.AppointmentType[0])@a.AppointmentType.Substring(1) | 
+                <strong>Staff:</strong> @FormatStaff(a.AssignedStaff) | 
+                <strong>Status:</strong> @char.ToUpper(a.Status[0])@a.Status.Substring(1)
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Recently Added Patients -->
+    <div class="report-details" style="margin-top: 30px;">
+      <div class="details-title">
+        <i class="bi bi-people"></i> Recently Added Patients
+      </div>
+      <div>
+        @if (!Model.RecentPatients.Any())
+        {
+          <div class="empty-message">No patients added recently</div>
+        }
+        else
+        {
+          @foreach (var p in Model.RecentPatients)
+          {
+            <div class="detail-item">
+              <div class="detail-item-title">@p.FullName (Age: @p.Age)</div>
+              <div class="detail-item-text">
+                <strong>Contact:</strong> @p.Contact | 
+                <strong>Status:</strong> @p.Status | 
+                <strong>Added:</strong> @p.DateAdded.ToString("MMM dd, yyyy")
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+</main>

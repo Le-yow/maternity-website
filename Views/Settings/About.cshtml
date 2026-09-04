@@ -1,0 +1,211 @@
+@model MaterniTrack.Models.ViewModels.AboutSystemViewModel
+@{
+    ViewData["Title"] = "About System";
+    ViewData["BodyClass"] = "settings-page";
+    ViewData["ActiveSettingsTab"] = "About";
+}
+
+@section Styles {
+  <link rel="stylesheet" href="~/css/settings-users.css">
+  <style>
+    .about-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 6px rgba(13, 61, 40, 0.04);
+    }
+    .about-card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-green);
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .about-hero {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 28px;
+      background: linear-gradient(135deg, #0d3d28 0%, #1D9E75 100%);
+      border-radius: var(--radius-md);
+      color: #ffffff;
+      margin-bottom: 24px;
+    }
+    .about-logo-badge {
+      width: 76px;
+      height: 76px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.18);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      display: grid;
+      place-items: center;
+      font-size: 38px;
+      flex-shrink: 0;
+    }
+    .about-hero-title {
+      font-size: 26px;
+      font-weight: 700;
+      margin: 0 0 4px;
+      letter-spacing: -0.3px;
+    }
+    .about-hero-subtitle {
+      font-size: 14px;
+      color: #d1f2e5;
+      margin: 0 0 10px;
+    }
+    .version-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .spec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .spec-item {
+      padding: 14px;
+      background: #f7faf8;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+    .spec-name {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin: 0 0 4px;
+      font-weight: 700;
+    }
+    .spec-val {
+      font-size: 15px;
+      color: var(--text-green);
+      font-weight: 600;
+      margin: 0;
+    }
+    .health-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #15803d;
+      background: #dcfce7;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .health-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #16a34a;
+      box-shadow: 0 0 6px #16a34a;
+    }
+  </style>
+}
+
+<main class="settings-layout">
+  <partial name="_SettingsSidebar" />
+
+  <section class="settings-main" aria-label="About MaterniTrack System">
+    <div class="about-hero">
+      <div class="about-logo-badge">
+        <i class="bi bi-shield-shaded"></i>
+      </div>
+      <div>
+        <h1 class="about-hero-title">@Model.AppName</h1>
+        <p class="about-hero-subtitle">Comprehensive Obstetric Care & Clinical Record Management</p>
+        <span class="version-tag">VERSION @Model.Version</span>
+      </div>
+    </div>
+
+    <!-- Live System Health -->
+    <div class="about-card">
+      <h2 class="about-card-title">
+        <i class="bi bi-activity" style="color: var(--primary-green);"></i>
+        System Diagnostics & Health
+      </h2>
+      <div class="spec-grid">
+        <div class="spec-item">
+          <p class="spec-name">Database Connectivity</p>
+          <div class="health-status">
+            <span class="health-dot"></span>
+            @(Model.DatabaseConnected ? "Online & Synchronized" : "Offline")
+          </div>
+        </div>
+        <div class="spec-item">
+          <p class="spec-name">Active Clinical Host</p>
+          <p class="spec-val">Real-Mendoza Maternity Clinic Workstation</p>
+        </div>
+        <div class="spec-item">
+          <p class="spec-name">Server Timestamp</p>
+          <p class="spec-val">@Model.ServerTime.ToString("dddd, MMMM dd, yyyy · hh:mm tt")</p>
+        </div>
+        <div class="spec-item">
+          <p class="spec-name">Runtime Environment</p>
+          <p class="spec-val">.NET 9.0 Core Runtime (x64)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Clinical Records Metrics -->
+    <div class="about-card">
+      <h2 class="about-card-title">
+        <i class="bi bi-database-check" style="color: #2e63b7;"></i>
+        Current Clinical Database Scope
+      </h2>
+      <div class="spec-grid">
+        <div class="spec-item">
+          <p class="spec-name">Patients Enrolled</p>
+          <p class="spec-val" style="font-size: 20px; color: var(--primary-green);">@Model.TotalPatientsCount records</p>
+        </div>
+        <div class="spec-item">
+          <p class="spec-name">Appointments Logged</p>
+          <p class="spec-val" style="font-size: 20px; color: var(--primary-green);">@Model.TotalAppointmentsCount visits</p>
+        </div>
+        <div class="spec-item">
+          <p class="spec-name">Inventory Items Monitored</p>
+          <p class="spec-val" style="font-size: 20px; color: var(--primary-green);">@Model.TotalInventoryItemsCount supply lines</p>
+        </div>
+        <div class="spec-item">
+          <p class="spec-name">Authorized Staff</p>
+          <p class="spec-val" style="font-size: 20px; color: var(--primary-green);">@Model.TotalUsersCount accounts</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technical Architecture & Compliance -->
+    <div class="about-card">
+      <h2 class="about-card-title">
+        <i class="bi bi-cpu-fill" style="color: #7a5c00;"></i>
+        Software Specifications & Standards
+      </h2>
+      <div class="spec-grid">
+        <div class="spec-item">
+          <p class="spec-name">Application Framework</p>
+          <p class="spec-val">@Model.Framework</p>
+        </div>
+        <div class="spec-item">
+          <p class="spec-name">Persistence Engine</p>
+          <p class="spec-val">@Model.DatabaseProvider</p>
+        </div>
+        <div class="spec-item">
+          <p class="spec-name">Security & Access Control</p>
+          <p class="spec-val">ASP.NET Core Identity (Role-Based RBAC)</p>
+        </div>
+        <div class="spec-item">
+          <p class="spec-name">Healthcare Compliance Standard</p>
+          <p class="spec-val">@Model.Compliance</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,210 @@
+@model IEnumerable<MaterniTrack.Models.Patient>
+@{
+    ViewData["Title"] = "Patients";
+    ViewData["BodyClass"] = "patients-page";
+    string currentSearch = ViewBag.CurrentSearch as string ?? "";
+    string currentStatus = ViewBag.CurrentStatus as string ?? "all";
+    string currentSort = ViewBag.CurrentSort as string ?? "name-asc";
+}
+
+@section Styles {
+  <link rel="stylesheet" href="~/css/patients.css">
+}
+
+<main class="patients-main">
+    @if (TempData["SuccessMessage"] != null)
+    {
+      <div style="background-color: #d1fae5; border-left: 4px solid #10b981; color: #065f46; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: 500;">
+        <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+      </div>
+    }
+
+    <!-- Page Header -->
+    <section class="page-header" aria-label="Page header">
+      <div class="header-left">
+        <div class="header-icon" aria-hidden="true"><i class="bi bi-people-fill"></i></div>
+        <div>
+          <h1 class="page-title">Patients</h1>
+          <p class="page-subtitle">View and manage patient records for Real-Mendoza Maternity Clinic</p>
+        </div>
+      </div>
+      <a asp-action="Create" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+        Add New Patient
+      </a>
+    </section>
+
+    <!-- Summary Stat Cards -->
+    <section class="stat-cards" aria-label="Patients summary">
+      <article class="stat-card">
+        <div class="stat-icon stat-icon--total" aria-hidden="true">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <p class="stat-label">Total patients</p>
+        <p class="stat-number">@ViewBag.TotalPatients</p>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon stat-icon--month" aria-hidden="true">
+          <i class="bi bi-calendar3"></i>
+        </div>
+        <p class="stat-label">This month</p>
+        <p class="stat-number">@ViewBag.AddedThisMonth</p>
+      </article>
+
+      <article class="stat-card">
+        <div class="stat-icon stat-icon--active" aria-hidden="true">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <p class="stat-label">Active records</p>
+        <p class="stat-number">@ViewBag.ActivePatients</p>
+      </article>
+    </section>
+
+    <!-- Search & Filter Bar -->
+    <form method="get" asp-action="Index" id="filterForm">
+      <section class="filter-bar" aria-label="Search and filter controls">
+        <div class="search-input-wrap">
+          <span class="search-icon" aria-hidden="true"><i class="bi bi-search"></i></span>
+          <input
+            id="patientSearchInput"
+            name="search"
+            class="search-input"
+            type="text"
+            value="@currentSearch"
+            placeholder="Search patients by name, contact, or email..."
+            autocomplete="off"
+            onchange="document.getElementById('filterForm').submit();"
+          >
+        </div>
+
+        <div class="filter-wrap">
+          <label class="filter-label" for="filterStatus">Status</label>
+          <select id="filterStatus" name="status" class="filter-select" onchange="document.getElementById('filterForm').submit();">
+            <option value="all" selected="@(currentStatus == "all")">All Status</option>
+            <option value="active" selected="@(currentStatus == "active")">Active</option>
+            <option value="inactive" selected="@(currentStatus == "inactive")">Inactive</option>
+          </select>
+        </div>
+
+        <div class="filter-wrap">
+          <label class="filter-label" for="sortBy">Sort by</label>
+          <select id="sortBy" name="sortBy" class="filter-select" onchange="document.getElementById('filterForm').submit();">
+            <option value="name-asc" selected="@(currentSort == "name-asc")">Name (A-Z)</option>
+            <option value="name-desc" selected="@(currentSort == "name-desc")">Name (Z-A)</option>
+            <option value="date-new" selected="@(currentSort == "date-new")">Date Added (Newest)</option>
+            <option value="date-old" selected="@(currentSort == "date-old")">Date Added (Oldest)</option>
+            <option value="age-asc" selected="@(currentSort == "age-asc")">Age (Low to High)</option>
+            <option value="age-desc" selected="@(currentSort == "age-desc")">Age (High to Low)</option>
+          </select>
+        </div>
+      </section>
+    </form>
+
+    <!-- Patients Table -->
+    <section class="table-section" aria-label="Patients list">
+      <div class="table-wrap" aria-label="Patients table">
+        <table class="patients-table">
+          <thead>
+            <tr>
+              <th>Patient Name</th>
+              <th>Age</th>
+              <th>Contact</th>
+              <th>Email</th>
+              <th>Medical History</th>
+              <th>Status</th>
+              <th>Date Added</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="patientsTableBody">
+            @if (!Model.Any())
+            {
+              <tr>
+                <td colspan="8" class="empty-state">
+                  <p>No patients found. Click "Add New Patient" to get started.</p>
+                </td>
+              </tr>
+            }
+            else
+            {
+              @foreach (var patient in Model)
+              {
+                var historySnippet = string.IsNullOrWhiteSpace(patient.MedicalHistory) 
+                    ? "-" 
+                    : (patient.MedicalHistory.Length > 45 ? patient.MedicalHistory[..45] + "..." : patient.MedicalHistory);
+
+                <tr>
+                  <td><strong>@patient.FullName</strong></td>
+                  <td>@patient.Age</td>
+                  <td>@patient.Contact</td>
+                  <td>@(patient.Email ?? "-")</td>
+                  <td>@historySnippet</td>
+                  <td>
+                    <span class="status-badge status-badge-@patient.Status.ToLower()">
+                      @(char.ToUpper(patient.Status[0]) + patient.Status[1..])
+                    </span>
+                  </td>
+                  <td>@patient.DateAdded.ToString("MMM dd, yyyy")</td>
+                  <td>
+                    <div class="action-btn-group">
+                      <a asp-action="Edit" asp-route-id="@patient.Id" class="action-btn" title="Edit patient" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class="bi bi-pencil-fill"></i> Edit
+                      </a>
+                      <button type="button" class="action-btn action-btn-delete" onclick="openDeleteModal(@patient.Id, '@patient.FullName')" title="Delete patient">
+                        <i class="bi bi-trash-fill"></i> Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+</main>
+
+<!-- Delete Confirmation Modal -->
+<div id="deletePatientModal" class="modal-overlay is-hidden" role="dialog" aria-modal="true" aria-label="Delete patient confirmation">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <h2 class="modal-title" style="color: #b91c1c;"><i class="bi bi-exclamation-triangle"></i> Confirm Delete</h2>
+        <p class="modal-subtitle">Are you sure you want to remove this patient record?</p>
+      </div>
+    </div>
+    <div class="modal-body" style="padding: 16px 24px;">
+      <p style="font-size: 14px; color: #374151;">
+        Patient: <strong id="deletePatientName"></strong>
+        <br><small style="color: #6b7280;">This action cannot be undone.</small>
+      </p>
+    </div>
+    <div class="modal-footer">
+      <form id="deleteForm" method="post" asp-action="Delete">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" id="deletePatientId" value="" />
+        <button type="button" class="btn-modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+        <button type="submit" class="btn-modal-delete">Yes, Delete Record</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+  <script>
+    function openDeleteModal(id, name) {
+      document.getElementById('deletePatientId').value = id;
+      document.getElementById('deletePatientName').textContent = name;
+      document.getElementById('deletePatientModal').classList.remove('is-hidden');
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deletePatientModal').classList.add('is-hidden');
+    }
+
+    document.getElementById('deletePatientModal')?.addEventListener('click', function(e) {
+      if (e.target === this) closeDeleteModal();
+    });
+  </script>
+}

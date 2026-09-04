@@ -1,0 +1,144 @@
+@model MaterniTrack.Models.InventoryItem
+@{
+    ViewData["Title"] = "Add Item";
+    ViewData["BodyClass"] = "add-item-page";
+}
+
+@section Styles {
+  <link rel="stylesheet" href="~/css/inventory-add.css">
+}
+
+<main class="add-item-main">
+    <section class="form-header">
+      <a asp-controller="Inventory" asp-action="Index" class="back-link" style="text-decoration:none;">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Inventory
+      </a>
+      <div>
+        <h1 class="form-title">Add New Item</h1>
+        <p class="form-subtitle">Add a new medical supply to the inventory</p>
+      </div>
+    </section>
+
+    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Count > 0))
+    {
+      <div style="background:#fee2e2;border-left:4px solid #dc2626;color:#7f1d1d;padding:12px 16px;border-radius:6px;margin-bottom:20px;font-size:14px;">
+        @foreach (var state in ViewData.ModelState.Values)
+        {
+          foreach (var error in state.Errors)
+          {
+            <p style="margin:2px 0;">• @error.ErrorMessage</p>
+          }
+        }
+      </div>
+    }
+
+    <section class="form-section">
+      <form asp-action="Create" method="post" class="item-form" id="itemForm">
+        @Html.AntiForgeryToken()
+
+        <!-- Row 1: Item Name & Category -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" asp-for="Name">Item Name *</label>
+            <div class="input-wrap">
+              <i class="bi bi-box-seam" aria-hidden="true"></i>
+              <input asp-for="Name" class="form-input" type="text" placeholder="e.g. Gauze Pads" maxlength="100" required>
+            </div>
+            <span asp-validation-for="Name" class="form-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" asp-for="Category">Category *</label>
+            <div class="input-wrap">
+              <i class="bi bi-tag" aria-hidden="true"></i>
+              <select asp-for="Category" class="form-select" required>
+                <option value="">Select category</option>
+                <option value="Medicine">Medicine</option>
+                <option value="Equipment">Equipment</option>
+                <option value="Supplies">Supplies</option>
+              </select>
+            </div>
+            <span asp-validation-for="Category" class="form-error"></span>
+          </div>
+        </div>
+
+        <!-- Row 2: Quantity & Unit -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" asp-for="Quantity">Quantity *</label>
+            <div class="input-wrap">
+              <i class="bi bi-stack" aria-hidden="true"></i>
+              <input asp-for="Quantity" class="form-input" type="number" placeholder="e.g. 50" min="0" required>
+            </div>
+            <span asp-validation-for="Quantity" class="form-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" asp-for="Unit">Unit *</label>
+            <div class="input-wrap">
+              <i class="bi bi-rulers" aria-hidden="true"></i>
+              <select asp-for="Unit" class="form-select" required>
+                <option value="">Select unit</option>
+                <option value="pcs">pcs (pieces)</option>
+                <option value="box">box</option>
+                <option value="vial">vial</option>
+                <option value="bag">bag</option>
+                <option value="pack">pack</option>
+                <option value="bottle">bottle</option>
+                <option value="set">set</option>
+                <option value="roll">roll</option>
+              </select>
+            </div>
+            <span asp-validation-for="Unit" class="form-error"></span>
+          </div>
+        </div>
+
+        <!-- Row 3: Reorder Level & Expiration Date -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" asp-for="ReorderLevel">Reorder Level (Minimum Stock) *</label>
+            <div class="input-wrap">
+              <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+              <input asp-for="ReorderLevel" class="form-input" type="number" placeholder="e.g. 20" min="0" required>
+            </div>
+            <p class="form-hint">System will alert when stock falls below this number.</p>
+            <span asp-validation-for="ReorderLevel" class="form-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" asp-for="ExpirationDate">Expiration Date *</label>
+            <div class="input-wrap">
+              <i class="bi bi-calendar" aria-hidden="true"></i>
+              <input asp-for="ExpirationDate" class="form-input" type="date" required>
+            </div>
+            <span asp-validation-for="ExpirationDate" class="form-error"></span>
+          </div>
+        </div>
+
+        <!-- Row 4: Supplier & Date Added (read-only) -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" asp-for="Supplier">Supplier Name</label>
+            <div class="input-wrap">
+              <i class="bi bi-truck" aria-hidden="true"></i>
+              <input asp-for="Supplier" class="form-input" type="text" placeholder="e.g. PhilMed Supplies Inc." maxlength="150">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Date Added</label>
+            <div class="input-wrap">
+              <i class="bi bi-calendar" aria-hidden="true"></i>
+              <input type="text" class="form-input" value="@DateOnly.FromDateTime(DateTime.Today).ToString("MMMM dd, yyyy")" readonly>
+            </div>
+            <p class="form-hint">Automatically set to today's date.</p>
+          </div>
+        </div>
+
+        <div class="form-buttons">
+          <a asp-controller="Inventory" asp-action="Index" class="btn-cancel" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Cancel</a>
+          <button type="submit" class="btn-save">Save Item</button>
+        </div>
+      </form>
+    </section>
+</main>
